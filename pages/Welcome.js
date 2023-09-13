@@ -254,7 +254,7 @@ const Welcome = ({ navigation }) => {
                         />
                         <TouchableOpacity
                             activeOpacity={0.1}
-                            onPress={() => {setCpf(""); setCpfColor(COLORS.white)}}
+                            onPress={() => {setCpf(""); setCpfColor(COLORS.white), setCoresBotao(['#888', '#888']), setEstadoBotao(true)}}
                         > 
                             <AntDesign name="closecircle" size={22} color='#666'/>
                         </TouchableOpacity>
@@ -309,7 +309,7 @@ const Welcome = ({ navigation }) => {
                          alignSelf: 'center',
                          marginTop: '8%',
                         }}
-                        disabled={true}
+                        disabled={estadoBotao}
                         >
                         <LinearGradient 
                         start={{x: 0.0, y: 0.95}} 
