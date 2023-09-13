@@ -41,6 +41,8 @@ const Welcome = ({ navigation }) => {
 
     function formataCPF(cpf){
         setCpfColor(COLORS.white)
+        setEstadoBotao(true)
+        setCoresBotao(['#999', '#999'])
         cpf2 = cpf.replaceAll(".", "").replaceAll("-", "")
     
         if(cpf2.length == 4) {
@@ -67,6 +69,10 @@ const Welcome = ({ navigation }) => {
             if(!valido){
                 setCpfColor(COLORS.secondary)
             }
+            else {
+                setCoresBotao([COLORS.secondary, COLORS.primary])
+                setEstadoBotao(false)
+            }
             return cpf2.slice(0, 3) + "."  + cpf2.slice(3, 6) + "." + cpf2.slice(6, 9) + "-" + cpf2.slice(9, 11)
         }
         else return cpf
@@ -85,6 +91,8 @@ const Welcome = ({ navigation }) => {
     const refInput = useRef(null);
     const [isEnabled, setIsEnabled] = useState(false);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+    const [estadoBotao, setEstadoBotao] = useState(true);
+    const [coresBotao, setCoresBotao] = useState(['#999', '#999']);
     
       const onLayoutRootView = useCallback(async () => {
         if (fontsLoaded || fontError) {
@@ -202,7 +210,7 @@ const Welcome = ({ navigation }) => {
                 onBackdropPress={() => setVisibleModal(false)}
                 style={{
                     margin:0,
-                    justifyContent: 'flex-end'
+                    justifyContent: 'flex-end',
                 }}
                 onModalShow={() => refInput.current.focus()}
                 onModalWillHide={() => refInput.current.blur()}
@@ -295,9 +303,28 @@ const Welcome = ({ navigation }) => {
                     value={isEnabled}
                     />
                     </View>
-                    <TouchableOpacity style={{width: "90%", height: 45}}>
-                        <LinearGradient start={{x: 0.0, y: 0.95}} end={{x: 0.8, y: 1.0}} colors={[ COLORS.secondary, COLORS.primary]} style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-                            <Text>aaaa</Text>
+                    <TouchableOpacity style={{
+                        width: "90%", 
+                        height: 45,
+                         alignSelf: 'center',
+                         marginTop: '8%',
+                        }}
+                        disabled={true}
+                        >
+                        <LinearGradient 
+                        start={{x: 0.0, y: 0.95}} 
+                        end={{x: 0.8, y: 1.0}} 
+                        colors={[ coresBotao[0] , coresBotao[1] ]} 
+                        style={{
+                            flex: 1, 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            borderRadius: 10,}}>
+                            <Text
+                            style={{
+                                color: COLORS.white
+                            }}
+                            >Continuar</Text>
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
