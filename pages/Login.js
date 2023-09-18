@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, SafeAreaView, StyleSheet, KeyboardAvoidin
 import React from 'react'
 import COLORS from '../constants/colors'
 
-
+//Amigo você esqueceu seu github, udemy e google aberto aqui no pc da ETS, desloguei todos para você. bons estudos!! 👍
 const Login = ({handleClose}) => {
 
   return (
