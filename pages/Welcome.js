@@ -1,4 +1,4 @@
-import { View, Text, Image, ImageBackground, SafeAreaView, TextInput, StatusBar, Switch} from 'react-native'
+import { View, Text, Image, ImageBackground, SafeAreaView, TextInput, Switch, ActivityIndicator} from 'react-native'
 import React, { useCallback, useState, useRef } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import COLORS from '../constants/colors'
@@ -9,9 +9,20 @@ import * as SplashScreen from 'expo-splash-screen';
 import Login from './Login';
 import Modal from "react-native-modal";
 import { AntDesign } from '@expo/vector-icons';
+import FlashMessage, { showMessage } from 'react-native-flash-message';
+import SmoothPinCodeInput from 'react-native-smooth-pincode-input';
 
 
 
+const getCpfs = async () => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {resolve({
+        users: [
+          { cpf: "26973816860" },
+        ]
+      })}, Math.random() * 3000)
+    })
+  }
 
 function verificaCPF(strCPF){
     strCPF = strCPF.replaceAll(".", "").replaceAll("-", "")
@@ -38,6 +49,25 @@ function verificaCPF(strCPF){
 }
 
 const Welcome = ({ navigation }) => {
+
+
+    async function handleLogar(){
+        setLoading(true)
+        let user = await getCpfs();
+        setLoading(false)
+        if(user.users.find(o => o.cpf == cpf.replaceAll(".", "").replaceAll("-", ""))){
+            setCpfExist(true)
+        }
+        else {
+            setCpfExist(false)
+        }
+        setVisibleModal(false)
+        setMostrou(true)
+        setCpf(""); 
+        setCpfColor(COLORS.white), 
+        setCoresBotao(['#888', '#888']), 
+        setEstadoBotao(true)
+    }
 
     function formataCPF(cpf){
         setCpfColor(COLORS.white)
@@ -86,14 +116,21 @@ const Welcome = ({ navigation }) => {
     });
 
     const [visibleModal, setVisibleModal] = useState(false);
+    const [visibleModalPassword, setVisibleModalPassword] = useState(false);
+    const [senha, setSenha] = useState("");
     const [cpf, setCpf] = useState("");
+    const [loading, setLoading] = useState(false);
     const [cpfColor, setCpfColor] = useState("#fff");
     const refInput = useRef(null);
+    const refInputSenha = useRef(null);
     const [isEnabled, setIsEnabled] = useState(false);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
     const [estadoBotao, setEstadoBotao] = useState(true);
     const [coresBotao, setCoresBotao] = useState(['#999', '#999']);
-    
+    const [cpfExiste, setCpfExist] = useState(true)
+    const [mostrou, setMostrou] = useState(false)
+    const flashMessage = useRef();
+
       const onLayoutRootView = useCallback(async () => {
         if (fontsLoaded || fontError) {
           await SplashScreen.hideAsync();
@@ -212,8 +249,28 @@ const Welcome = ({ navigation }) => {
                     margin:0,
                     justifyContent: 'flex-end',
                 }}
-                onModalShow={() => refInput.current.focus()}
+                onModalShow={() => {refInput.current.focus()}}
                 onModalWillHide={() => refInput.current.blur()}
+                onModalHide={() => {
+                    if(mostrou){
+                        if(!cpfExiste){
+                            flashMessage.current.showMessage(
+                                {message: "Não possivel concluir sua solicitação, tente novamente em instantes", 
+                                icon: () => <AntDesign name="exclamationcircle" 
+                                size={22} 
+                                color={COLORS.white} 
+                                style={{marginRight: 10}}/>})
+                            setMostrou(false)
+                        }
+                        else{
+                            setVisibleModalPassword(true)
+                            setMostrou(false)
+                        }
+                    }
+                }}
+                onModalWillShow={() => {
+                    setCpf("")
+            }}
             >
                 <View style={{
                     backgroundColor: "#181616",
@@ -254,7 +311,9 @@ const Welcome = ({ navigation }) => {
                         />
                         <TouchableOpacity
                             activeOpacity={0.1}
-                            onPress={() => {setCpf(""); setCpfColor(COLORS.white), setCoresBotao(['#888', '#888']), setEstadoBotao(true)}}
+                            onPress={() => {
+                                setCpf(""); setCpfColor(COLORS.white), setCoresBotao(['#888', '#888']), setEstadoBotao(true)
+                            }}
                         > 
                             <AntDesign name="closecircle" size={22} color='#666'/>
                         </TouchableOpacity>
@@ -304,12 +363,13 @@ const Welcome = ({ navigation }) => {
                     />
                     </View>
                     <TouchableOpacity style={{
-                        width: "90%", 
+                        width: "100%", 
                         height: 45,
                          alignSelf: 'center',
-                         marginTop: '8%',
+                         marginTop: '6%',
                         }}
                         disabled={estadoBotao}
+                        onPress={handleLogar}
                         >
                         <LinearGradient 
                         start={{x: 0.0, y: 0.95}} 
@@ -320,15 +380,86 @@ const Welcome = ({ navigation }) => {
                             alignItems: 'center', 
                             justifyContent: 'center', 
                             borderRadius: 10,}}>
-                            <Text
-                            style={{
-                                color: COLORS.white
-                            }}
-                            >Continuar</Text>
+                            {
+                            !loading ? <Text style={{color: COLORS.white }}>Entrar</Text>  : <ActivityIndicator size="small" color="#000"/>}
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
             </Modal>
+            <Modal
+                isVisible={visibleModalPassword}
+                onRequestClose={() => setVisibleModalPassword(false)}
+                transparent={true}
+                animationType="slide"
+                onBackdropPress={() => setVisibleModalPassword(false)}
+                style={{
+                    margin:0,
+                    justifyContent: 'flex-end',
+                }}
+                onModalWillShow={() => setSenha("")}
+                onModalShow={() => {
+                    refInputSenha.current.focus()
+                }}
+                onModalWillHide={() => refInputSenha.current.blur()}
+            >
+                <View style={{
+                    backgroundColor: "#181616",
+                    flex: 0.60,
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                    padding: "4%",
+                    alignItems: 'center'
+                }}>
+                    <Text
+                    style={{
+                        color: COLORS.white,
+                        fontFamily: "MontserratAlternates-regular",
+                        fontSize: 22,
+                        marginBottom: "13%",
+                        marginTop: "5%",
+                        textAlign: 'center'
+                    }}
+                    >
+                        Insira a senha de acesso
+                    </Text>
+                    <SmoothPinCodeInput
+                        ref={refInputSenha}
+                        placeholder={<View style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: 25,
+                            borderWidth:  1,
+                            borderColor: "#fff"
+                        }}></View>}
+                        mask={<View style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: 25,
+                            backgroundColor: "#fff",
+                        }}></View>}
+                        maskDelay={0}
+                        password={true}
+                        cellStyle={null}
+                        cellStyleFocused={null}
+                        value={senha}
+                        onTextChange={senha => setSenha(senha)}
+                        autoFocus={true}
+                        codeLength={6}
+                        restrictToNumbers={true}
+                        animated={false}
+                        cellSpacing={1}
+                    />
+                    <TouchableOpacity style={{marginTop: "7%"}}>
+                        <Text style={{
+                            color: COLORS.primary,
+                            fontFamily: "MontserratAlternates-SemiBold",
+                            fontSize: 12,
+                        }}>Redefinir senha</Text>
+                    </TouchableOpacity>
+                </View>
+
+            </Modal>
+            <FlashMessage style={{alignItems: 'center', backgroundColor: COLORS.secondary}} ref={flashMessage} duration={2500}/>
         </View >
 
     )
