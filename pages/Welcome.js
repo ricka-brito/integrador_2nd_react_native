@@ -50,8 +50,12 @@ function verificaCPF(strCPF){
 
 const Welcome = ({ navigation }) => {
 
+    async function handleSenha() {
 
-    async function handleLogar(){
+    }
+
+
+    async function handleLogar() {
         setLoading(true)
         let user = await getCpfs();
         setLoading(false)
@@ -448,6 +452,7 @@ const Welcome = ({ navigation }) => {
                         restrictToNumbers={true}
                         animated={false}
                         cellSpacing={1}
+                        onFulfill={handleSenha}
                     />
                     <TouchableOpacity style={{marginTop: "7%"}}>
                         <Text style={{
