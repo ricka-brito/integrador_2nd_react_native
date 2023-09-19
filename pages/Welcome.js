@@ -212,7 +212,10 @@ const Welcome = ({ navigation }) => {
                             borderWidth:  2,
                             backgroundColor: COLORS.white
                         }}
-                        onPress={() => navigation.navigate("Signup")}
+                        onPress={() => {
+                            navigation.removeListener
+                            navigation.navigate("Signup", {fontsLoaded:fontsLoaded})
+                        }}
                     >
                         <Text 
                             style={{
