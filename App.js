@@ -29,7 +29,8 @@ export default function App() {
         name='Signup'
         component={Singup}
         options={{
-          headerShown: false
+          headerShown: false,
+          gestureEnabled: false
         }}
         />
 

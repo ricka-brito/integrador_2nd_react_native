@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, TextInput, KeyboardAvoidingView } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { SafeAreaView, View, TouchableOpacity, Text, TextInput, KeyboardAvoidingView } from 'react-native';
 import { GiftedChat, Bubble  } from 'react-native-gifted-chat';
 import * as Animatable from 'react-native-animatable';
 import { LinearGradient } from 'expo-linear-gradient'
@@ -9,7 +9,8 @@ import COLORS from "../constants/colors";
 import Checkbox from "../components/Checkbox.js"
 import Button from "../components/Button";
 import Input from "../components/Input";
-
+import SmoothPinCodeInput from 'react-native-smooth-pincode-input';
+import { AntDesign } from '@expo/vector-icons';
 
 
 function verificaCPF(strCPF){
@@ -36,13 +37,29 @@ function verificaCPF(strCPF){
   return true;
 }
 
+function applyMask(inputField) {
+  // Remove todos os caracteres não numéricos
+  let phoneNumber = inputField.value.replace(/\D/g, '');
+  
+  // Verifica se o número já tem o DDD e formata de acordo
+  if (phoneNumber.length > 2 && phoneNumber.length <= 10) {
+    phoneNumber = phoneNumber.replace(/^(\d{2})(\d{0,4})(\d{0,4})/, '($1) $2-$3');
+  } else if (phoneNumber.length > 10) {
+    phoneNumber = phoneNumber.replace(/^(\d{2})(\d{1,5})(\d{0,4})(\d{0,4})/, '($1) $2-$3-$4');
+  }
 
-const Singup = (props) => {
+  // Define o valor formatado de volta no campo de entrada
+  return phoneNumber
+}
+
+
+const Singup = ({ navigation }, props) => {
 
 
   const {fontsLoaded} = props;
   const [messages, setMessages] = useState([]);
   const [showButton, setShowButton] = useState(false);
+  const [showButtonTermos, setButtonTermos] = useState(false);
   const [visibleModal, setVisibleModal] = useState(false);
   const [pfIsChecked, setPfChecked] = useState(false);
   const [pjIsChecked, setPjChecked] = useState(false);
@@ -51,13 +68,26 @@ const Singup = (props) => {
   const [showCpfInput, setShowCpfInput] = useState(false);
   const [cpfInput, setCpfInput] = useState("");
   const [sendCpf, setSendCpf] = useState(false);
+  const [senha, setSenha] = useState('')
+  const [visibleModalPassword, setVisibleModalPassword] = useState(false)
+  const refInputSenha = useRef(null)
  
   // input_nome
   const [showNomeInput, setShowNomeInput] = useState(false);
   const [nomeInput, setNomeInput] = useState("");
   const [sendNome, setSendNome] = useState(false);
 
-  const messageDelay = 2000; // 2 segundos de atraso entre mensagens
+  // input_email 
+  const [showEmailInput, setShowEmailInput] = useState(false);
+  const [emailInput, setEmailInput] = useState('')
+  const [sendEmail, setSendEmail] = useState(false)
+
+
+  //modal-Sair
+  const [isVisibleModalSair, setIsVisibleModalSair] = useState(false)
+  const [sair, setSair] = useState(false)
+
+  const messageDelay = 500; // 2 segundos de atraso entre mensagens
 
   const addMessagesWithDelay = async (initialMessages) => {
     for (let i = 0; i < initialMessages.length; i++) {
@@ -173,6 +203,17 @@ const Singup = (props) => {
 
     
     <View style={{ flex: 1, backgroundColor: 'black' }}>
+      <View style={{
+        position: 'absolute',
+        width: '100%',
+        height: '10%',
+        backgroundColor: '#000',
+        zIndex: 100
+      }}>
+        <TouchableOpacity onPress={() => setIsVisibleModalSair(true)} style={{marginTop: '14%', marginLeft: '5%'}}>
+          <AntDesign name="close" size={19} color="#ddd" />
+        </TouchableOpacity>
+      </View>
       <GiftedChat
         messages={messages}
         onSend={newMessages => onSend(newMessages)}
@@ -184,16 +225,22 @@ const Singup = (props) => {
         renderDay ={() => null}
         onLongPress={() => null}
         minInputToolbarHeight={60}
-        renderBubble={(props) => (
+        renderBubble={(props) => {
+          const { currentMessage } = props;
+          const { botao } = currentMessage;
+
+          return(
           <Bubble
             {...props}
+            renderCustomView={() => (botao ? botao : null)}
+            isCustomViewBottom={true}
             wrapperStyle={{
               left: {
                 backgroundColor: '#333',
                 padding: 10
               },
               right: {
-                backgroundColor: '#d8d8d8',
+                backgroundColor: '#eeeeee',
                 padding: 10,
                 marginBottom: 20,
                 marginTop: 20,
@@ -213,44 +260,75 @@ const Singup = (props) => {
               },
             }}
           />
-        )}
+        )}}
         inverted={true}
         renderInputToolbar={() => null}
       />
       { showButton && (
         <Button onPress={() => setVisibleModal(true)} style={{marginTop: '-8%',marginBottom: '10%', width: "95%"}} text='Selecionar'/>) }
+      { showButtonTermos && (
+        <Button onPress={async () => {
+          onSend({
+            _id: 14,
+            text: '👍',
+            createdAt: new Date(),
+            user: {
+              _id: 1,
+              name: 'User',
+            }
+          })
+          setButtonTermos(false)
+          await addMessagesWithDelay([
+            {
+              _id: 15,
+              text: 'Qual o seu e-mail pessoal?',
+              createdAt: new Date(),
+              user: {
+                _id: 2,
+                name: 'Bot',
+              }
+            }
+          ])
+          setShowEmailInput(true)
+        }} style={{marginTop: '-8%',marginBottom: '10%', width: "95%"}} text='Li e estou de acordo'/>) }
       { showCpfInput && (<Input onSend={async () => {
-        onSend({
-          _id: 9, 
-          text: cpfInput,
-          createdAt: new Date(),
-          user: {
-            _id: 1,
-            name: 'User',
-          }
-        },)
-        setShowCpfInput(false)
-        await addMessagesWithDelay([
-          {
-            _id: 10,
-            text: 'Como podemos chamar você?',
+        if (cpfInput == '269.738.168-60'){
+          setVisibleModalPassword(true)
+          setShowCpfInput(false)
+        }
+        else{
+          onSend({
+            _id: 9, 
+            text: cpfInput,
             createdAt: new Date(),
             user: {
-              _id: 2,
-              name: 'Bot',
+              _id: 1,
+              name: 'User',
             }
-          },
-          {
-            _id: 8,
-            text: 'Pode ser seu primeiro nome ou apelido.',
-            createdAt: new Date(),
-            user: {
-              _id: 2,
-              name: 'Bot',
+          },)
+          setShowCpfInput(false)
+          await addMessagesWithDelay([
+            {
+              _id: 10,
+              text: 'Como podemos chamar você?',
+              createdAt: new Date(),
+              user: {
+                _id: 2,
+                name: 'Bot',
+              }
+            },
+            {
+              _id: 11,
+              text: 'Pode ser seu primeiro nome ou apelido.',
+              createdAt: new Date(),
+              user: {
+                _id: 2,
+                name: 'Bot',
+              }
             }
-          }
-        ])
-      
+          ])
+        setShowNomeInput(true)
+        }
       }} 
       maxLength={14} 
       value={cpfInput} 
@@ -259,8 +337,77 @@ const Singup = (props) => {
       placeHolder='Digite seu CPF...' 
       keyType='numeric' disable/>)}
 
-      {showNomeInput && (<Input value={nomeInput} disabled={sendNome} placeHolder='Digite um nome ou apelido...' formater={(nomeInput) => setNomeInput(nomeInput)} onSend />)}
+      {showNomeInput && (<Input onSend={async () => {
+        onSend({
+          _id: 12,
+          text: nomeInput,
+          createdAt: new Date(),
+          user: {
+            _id: 1,
+            name: 'User',
+          }
+        })
+        setShowNomeInput(false)
+        await addMessagesWithDelay([
+          {
+            _id: 13,
+            text: 'Para continuar, você precisa aceitar os Termos de Uso e Politica de Privacidade.',
+            createdAt: new Date(),
+            user: {
+              _id: 2,
+              name: 'Bot',
+            },
+            botao: <TouchableOpacity 
+            style={{
+              borderRadius: 20,
+              padding: '2%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginLeft: "3%",
+              borderColor: '#ddd',
+              borderWidth: 1,
+              width: '60%'
+            }}
+          >
+            <Text style={{
+              fontFamily: "MontserratAlternates-regular",
+              color: '#ddd',
+              fontSize: 12
+            }}>ABRIR TERMOS DE USO</Text>
+          </TouchableOpacity> 
+          }
+        ])
+        setButtonTermos(true)
+      }} value={nomeInput} disabled={sendNome} placeHolder='Digite um nome ou apelido...' formater={(nomeInput) => { setNomeInput(nomeInput); nomeInput.length ? setSendNome(true) : setSendNome(false)}}/>)}
       
+      {showEmailInput && (<Input
+
+        onSend={async () => {
+          onSend({
+            _id: 15,
+            text: emailInput,
+            createdAt: new Date(),
+            user: {
+              _id: 1,
+              name: 'User',
+            }
+          })
+          await addMessagesWithDelay([
+            {
+              _id: 16,
+              text: 'Qual o número do seu celular (com DDD)?',
+              createdAt: new Date(),
+              user: {
+                _id: 2,
+                name: 'Bot',
+              }
+            }
+          ])
+        }}
+        value={emailInput} disabled={sendEmail} placeHolder='Digite um e-mail...' formater={(emailInput => {setEmailInput(emailInput); setSendEmail(/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/gi.test(emailInput))
+      })}
+      />)}
       <Modal
         isVisible={visibleModal}
         onRequestClose={() => setVisibleModal(false)}
@@ -329,6 +476,132 @@ const Singup = (props) => {
               
         </View>
       </Modal>
+      <Modal
+                isVisible={visibleModalPassword}
+                onRequestClose={() => setVisibleModalPassword(false)}
+                transparent={true}
+                animationType="slide"
+                style={{
+                    margin:0,
+                    justifyContent: 'flex-end',
+                }}
+                onModalWillShow={() => setSenha("")}
+                onModalShow={() => {
+                    refInputSenha.current.focus()
+                }}
+                onModalWillHide={() => refInputSenha.current.blur()}
+            >
+                <View style={{
+                    backgroundColor: "#181616",
+                    flex: 0.60,
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                    padding: "4%",
+                    alignItems: 'center'
+                }}>
+                    <Text
+                    style={{
+                        color: COLORS.white,
+                        fontFamily: "MontserratAlternates-regular",
+                        fontSize: 22,
+                        marginBottom: "13%",
+                        marginTop: "5%",
+                        textAlign: 'center'
+                    }}
+                    >
+                        Insira a senha de acesso
+                    </Text>
+                    <SmoothPinCodeInput
+                        ref={refInputSenha}
+                        placeholder={<View style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: 25,
+                            borderWidth:  1,
+                            borderColor: "#fff"
+                        }}></View>}
+                        mask={<View style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: 25,
+                            backgroundColor: "#fff",
+                        }}></View>}
+                        maskDelay={0}
+                        password={true}
+                        cellStyle={null}
+                        cellStyleFocused={null}
+                        value={senha}
+                        onTextChange={senha => setSenha(senha)}
+                        autoFocus={true}
+                        codeLength={6}
+                        restrictToNumbers={true}
+                        animated={false}
+                        cellSpacing={1}
+                    />
+                    <TouchableOpacity style={{marginTop: "7%"}}>
+                        <Text style={{
+                            color: COLORS.primary,
+                            fontFamily: "MontserratAlternates-SemiBold",
+                            fontSize: 12,
+                        }}>Redefinir senha</Text>
+                    </TouchableOpacity>
+                </View>
+
+            </Modal>
+            <Modal
+              isVisible={isVisibleModalSair}
+              onRequestClose={() => setIsVisibleModalSair(false)}
+              transparent={true}
+              onBackdropPress={() => setIsVisibleModalSair(false)}
+                animationType="slide"
+                style={{
+                    margin:0,
+                    justifyContent: 'flex-end',
+                }}
+              onModalHide={() => sair ? navigation.goBack() : null}
+            >
+              <View style={{
+                    backgroundColor: "#181616",
+                    flex: 0.26,
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                    padding: "4%",
+                    alignItems: 'center'
+                }}>
+                  <Text
+                    style={{
+                        color: COLORS.white,
+                        fontFamily: "MontserratAlternates-regular",
+                        fontSize: 22,
+                        marginBottom: "6%",
+                        marginTop: "5%",
+                        textAlign: 'center'
+                    }}
+                    >
+                        Deseja cancelar a abertura da sua conta?
+                    </Text>
+                    <Text
+                      style={{
+                        color: COLORS.white,
+                        fontFamily: "MontserratAlternates-regular",
+                        fontSize: 12,
+                        marginBottom: "6%",
+                        textAlign: 'center'
+                    }}
+                    >
+                      Você perdera todas as informações preenchidas.
+                    </Text>
+                    <View style={{
+                      display: 'flex',
+                      flexDirection: "row",
+                      justifyContent: 'space-around',
+                      width: '100%'
+                    }}>
+                      <Button onPress={() => setIsVisibleModalSair(false)} text='Não' colors={[]} style={{width: '45%', height: 55, borderColor: '#ddd', borderRadius: 10, borderWidth: 1, color: '#ddd'}}/>
+                      <Button onPress={async () => { setSair(true), setIsVisibleModalSair(false)}} text='Sim' style={{width: '45%', height: 55}}/>
+                    </View>
+                </View>
+            </Modal>
     </View>
   );
 }
