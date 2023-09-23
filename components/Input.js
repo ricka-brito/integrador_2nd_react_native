@@ -32,6 +32,7 @@ export default function Input(props) {
                     onChangeText={formater}
                     inputMode={keyType}
                     maxLength={maxLength}
+                    dataDetectorTypes='none'
                 />        
                 <TouchableOpacity disabled={!disabled} onPress={onSend} style={{ marginRight: 4, display:'flex', alignItems: 'center', justifyContent:'center', backgroundColor: !disabled ? '#3f3f3f' : COLORS.primary, borderRadius: '50%', height: 43, width: 43}}>
                     <Ionicons  

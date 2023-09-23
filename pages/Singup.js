@@ -220,6 +220,9 @@ const Singup = ({ navigation }, props) => {
         user={{
           _id: 1,
         }}
+        parsePatterns={(linkStyle) => [
+          { type: 'email', style: null, onPress: null },
+        ]}
         renderAvatar={null}
         renderTime={() => null}
         renderDay ={() => null}
@@ -384,8 +387,8 @@ const Singup = ({ navigation }, props) => {
       {showEmailInput && (<Input
 
         onSend={async () => {
-          onSend({
-            _id: 15,
+          await onSend({
+            _id: 16,
             text: emailInput,
             createdAt: new Date(),
             user: {
@@ -393,9 +396,10 @@ const Singup = ({ navigation }, props) => {
               name: 'User',
             }
           })
+          setShowEmailInput(false)
           await addMessagesWithDelay([
             {
-              _id: 16,
+              _id: 17,
               text: 'Qual o número do seu celular (com DDD)?',
               createdAt: new Date(),
               user: {
