@@ -39,19 +39,11 @@ function verificaCPF(strCPF){
 
 function applyMask(inputField) {
   // Remove todos os caracteres não numéricos
-  let phoneNumber = inputField.value.replace(/\D/g, '');
+  let phoneNumber = inputField.replaceAll(/\D/g, '');
   
-  // Verifica se o número já tem o DDD e formata de acordo
-  if (phoneNumber.length > 2 && phoneNumber.length <= 10) {
-    phoneNumber = phoneNumber.replace(/^(\d{2})(\d{0,4})(\d{0,4})/, '($1) $2-$3');
-  } else if (phoneNumber.length > 10) {
-    phoneNumber = phoneNumber.replace(/^(\d{2})(\d{1,5})(\d{0,4})(\d{0,4})/, '($1) $2-$3-$4');
-  }
-
-  // Define o valor formatado de volta no campo de entrada
-  return phoneNumber
+  if (phoneNumber == 2)
+  return phoneNumber;
 }
-
 
 const Singup = ({ navigation }, props) => {
 
@@ -68,9 +60,9 @@ const Singup = ({ navigation }, props) => {
   const [showCpfInput, setShowCpfInput] = useState(false);
   const [cpfInput, setCpfInput] = useState("");
   const [sendCpf, setSendCpf] = useState(false);
-  const [senha, setSenha] = useState('')
-  const [visibleModalPassword, setVisibleModalPassword] = useState(false)
-  const refInputSenha = useRef(null)
+  const [senha, setSenha] = useState('');
+  const [visibleModalPassword, setVisibleModalPassword] = useState(false);
+  const refInputSenha = useRef(null);
  
   // input_nome
   const [showNomeInput, setShowNomeInput] = useState(false);
@@ -79,9 +71,26 @@ const Singup = ({ navigation }, props) => {
 
   // input_email 
   const [showEmailInput, setShowEmailInput] = useState(false);
-  const [emailInput, setEmailInput] = useState('')
-  const [sendEmail, setSendEmail] = useState(false)
+  const [emailInput, setEmailInput] = useState('');
+  const [sendEmail, setSendEmail] = useState(false);
 
+  // input_telefone
+  const [showTelefoneInput, setShowTelefoneInput] = useState(false);
+  const [telefoneInput, setTelefoneInput] = useState('');
+  const [sendTelefone, setSendTelefone] = useState(false);
+
+  // senhas
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [showConfirmPasswordModal, setShowConfirmPasswordModal] = useState(false)
+  const [willShowConfirmPasswordModal, setWillShowConfirmPasswordModal] = useState(false)
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showButtonSenha, setShowButtonSenha] = useState(false)
+  const [deuErroSenha, setDeuErroSenha] = useState(false)
+  const refInputPassword = useRef(null);
+  const refInputConfirmPassword = useRef(null);
+
+  
 
   //modal-Sair
   const [isVisibleModalSair, setIsVisibleModalSair] = useState(false)
@@ -336,9 +345,12 @@ const Singup = ({ navigation }, props) => {
       maxLength={14} 
       value={cpfInput} 
       disabled={sendCpf} 
-      formater={(cpfInput) => setCpfInput(formataCPF(cpfInput))} 
+      formater={(cpfInput) => {setCpfInput(cpfInput); cpfInput.length == 14 ? setSendCpf(verificaCPF(cpfInput)) : null}} 
       placeHolder='Digite seu CPF...' 
-      keyType='numeric' disable/>)}
+      keyType='numeric'
+      mask={[/\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, ".", /\d/, /\d/, /\d/, "-", /\d/, /\d/]}
+      />
+      )}
 
       {showNomeInput && (<Input onSend={async () => {
         onSend({
@@ -408,10 +420,62 @@ const Singup = ({ navigation }, props) => {
               }
             }
           ])
+          setShowTelefoneInput(true)
         }}
         value={emailInput} disabled={sendEmail} placeHolder='Digite um e-mail...' formater={(emailInput => {setEmailInput(emailInput); setSendEmail(/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/gi.test(emailInput))
       })}
       />)}
+      {showTelefoneInput && <Input
+
+        onSend={async () => {
+           onSend({
+            _id: 18,
+            text: telefoneInput,
+            createdAt: new Date(),
+            user: {
+              _id: 1,
+              name: 'User',
+            }
+          })
+          setShowTelefoneInput(false)
+          await addMessagesWithDelay([
+            {
+              _id: 19,
+              text: 'Crie uma senha de 6 números para acessar o app.',
+              createdAt: new Date(),
+              user: {
+                _id: 2,
+                name: 'Bot',
+              }
+            },
+            {
+              _id: 20,
+              text: 'Não é a mesma senha do cartão nem da conta corrente, ok?',
+              createdAt: new Date(),
+              user: {
+                _id: 2,
+                name: 'Bot',
+              }
+            },
+            {
+              _id: 21,
+              text: 'Ah! Não use números sequenciais ou a data do seu aniversario.',
+              createdAt: new Date(),
+              user: {
+                _id: 2,
+                name: 'Bot',
+              }
+            }
+          ])
+          setShowButtonSenha(true)
+
+        }}
+      
+        keyType='numeric' maxLength={15} value={telefoneInput} disabled={sendTelefone} placeHolder='Digite um telefone...' mask={['(', /\d/, /\d/, ')', ' ', /\d/, /\d/, /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]} formater={telefoneInput => {setTelefoneInput(telefoneInput); setSendTelefone(telefoneInput.length == 15)}}
+      
+      />}
+      { showButtonSenha && (
+        <Button onPress={() => setShowPasswordModal(true)} style={{marginTop: '-8%',marginBottom: '10%', width: "95%"}} text='Criar senha'/>) }
       <Modal
         isVisible={visibleModal}
         onRequestClose={() => setVisibleModal(false)}
@@ -605,6 +669,196 @@ const Singup = ({ navigation }, props) => {
                       <Button onPress={async () => { setSair(true), setIsVisibleModalSair(false)}} text='Sim' style={{width: '45%', height: 55}}/>
                     </View>
                 </View>
+            </Modal>
+            <Modal
+                isVisible={showPasswordModal}
+                onRequestClose={() => setShowPasswordModal(false)}
+                transparent={true}
+                animationType="slide"
+                onBackdropPress={() => setShowPasswordModal(false)}
+                style={{
+                    margin:0,
+                    justifyContent: 'flex-end',
+                }}
+                onModalWillShow={() => setPassword("")}
+                onModalShow={() => {
+                  setShowButtonSenha(false)
+                  refInputPassword.current.focus()
+                }}
+                onModalWillHide={() => refInputPassword.current.blur()}
+                onModalHide={() => {willShowConfirmPasswordModal ? setShowConfirmPasswordModal(true) : setShowButtonSenha(true); setWillShowConfirmPasswordModal(false)}}
+            >
+                <View style={{
+                    backgroundColor: "#181616",
+                    flex: 0.60,
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                    padding: "4%",
+                    alignItems: 'center'
+                }}>
+                    <Text
+                    style={{
+                        color: COLORS.white,
+                        fontFamily: "MontserratAlternates-regular",
+                        fontSize: 22,
+                        marginBottom: "13%",
+                        marginTop: "5%",
+                        textAlign: 'center'
+                    }}
+                    >
+                      Crie sua senha de acesso
+                    </Text>
+                    <SmoothPinCodeInput
+                        ref={refInputPassword}
+                        placeholder={<View style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: 25,
+                            borderWidth:  1,
+                            borderColor: "#fff"
+                        }}></View>}
+                        mask={<View style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: 25,
+                            backgroundColor: "#fff",
+                        }}></View>}
+                        maskDelay={0}
+                        password={true}
+                        cellStyle={null}
+                        cellStyleFocused={null}
+                        value={password}
+                        onTextChange={password => setPassword(password)}
+                        autoFocus={true}
+                        codeLength={6}
+                        restrictToNumbers={true}
+                        animated={false}
+                        cellSpacing={1}
+                        onFulfill={() => {
+                          setWillShowConfirmPasswordModal(true)
+                          setShowPasswordModal(false)
+                        }}
+                    />
+                </View>
+
+            </Modal>
+            <Modal
+                isVisible={showConfirmPasswordModal}
+                onRequestClose={() => setShowConfirmPasswordModal(false)}
+                transparent={true}
+                animationType="slide"
+                onBackdropPress={() => setShowConfirmPasswordModal(false)}
+                style={{
+                    margin:0,
+                    justifyContent: 'flex-end',
+                }}
+                onModalWillShow={() => setConfirmPassword("")}
+                onModalShow={() => {
+                    setWillShowConfirmPasswordModal(false)
+                    refInputConfirmPassword.current.focus()
+                }}
+                onModalWillHide={() => {refInputConfirmPassword.current.blur(); password != confirmPassword ? setShowButtonSenha(true) : null}}
+                onModalHide={async () => {
+                  if (willShowConfirmPasswordModal) {
+                    onSend({
+                      _id: 22,
+                      text: '🔐......',
+                      createdAt: new Date(),
+                      user: {
+                        _id: 1,
+                        name: 'User',
+                      }
+                    })
+                    await addMessagesWithDelay([
+                      {
+                        _id: 23,
+                        text: 'Vamos continuar. Qual é o seu endereço residencial?',
+                        createdAt: new Date(),
+                        user: {
+                          _id: 2,
+                          name: 'Bot',
+                        }
+                      },
+                      {
+                        _id: 24,
+                        text: 'Primeiro, digite o CEP.',
+                        createdAt: new Date(),
+                        user: {
+                          _id: 2,
+                          name: 'Bot',
+                        }
+                      },
+                    ])
+                  }
+                }}
+            >
+                <View style={{
+                    backgroundColor: "#181616",
+                    flex: 0.60,
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                    padding: "4%",
+                    alignItems: 'center'
+                }}>
+                    <Text
+                    style={{
+                        color: COLORS.white,
+                        fontFamily: "MontserratAlternates-regular",
+                        fontSize: 22,
+                        marginBottom: "13%",
+                        marginTop: "5%",
+                        textAlign: 'center'
+                    }}
+                    >
+                      Repita sua senha de acesso
+                    </Text>
+                    <SmoothPinCodeInput
+                        ref={refInputConfirmPassword}
+                        placeholder={<View style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: 25,
+                            borderWidth:  1,
+                            borderColor: "#fff"
+                        }}></View>}
+                        mask={<View style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: 25,
+                            backgroundColor: "#fff",
+                        }}></View>}
+                        maskDelay={0}
+                        password={true}
+                        cellStyle={null}
+                        cellStyleFocused={null}
+                        value={confirmPassword}
+                        onTextChange={confirmPassword => {setConfirmPassword(confirmPassword)}}
+                        autoFocus={true}
+                        codeLength={6}
+                        restrictToNumbers={true}
+                        animated={false}
+                        cellSpacing={1}
+                        onFulfill={(confirmPassword) => {
+                          setDeuErroSenha(false)
+                          if (password != confirmPassword){
+                            setDeuErroSenha(true)
+                          }
+                          else {
+                            setWillShowConfirmPasswordModal(true)
+                            setShowConfirmPasswordModal(false)
+
+                          }
+                        }}
+                    />
+                    {deuErroSenha && confirmPassword.length == 6 && <Text style={{
+                            color: COLORS.secondary,
+                            fontFamily: "MontserratAlternates-SemiBold",
+                            fontSize: 12,
+                            marginTop: "7%"
+
+                        }}>As senhas não coincidem, digite novamente</Text>}
+                </View>
+
             </Modal>
     </View>
   );
