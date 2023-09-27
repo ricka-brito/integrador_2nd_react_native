@@ -10,6 +10,7 @@ export default function Input(props) {
     const [margin, setMargin] = useState('10%');
     return (
         <KeyboardAvoidingView behavior='position' 
+            animationEnabled={false}
             contentContainerStyle={{
                 marginTop: '-10%', 
                 marginBottom: margin, 
