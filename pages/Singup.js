@@ -7,6 +7,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   LayoutAnimation,
+  Alert,
 } from "react-native";
 import { GiftedChat, Bubble } from "react-native-gifted-chat";
 import * as Animatable from "react-native-animatable";
@@ -23,6 +24,8 @@ import uuid from "react-native-uuid";
 import { ScrollView } from "react-native-gesture-handler";
 import { TypingAnimation } from "react-native-typing-animation";
 import * as Haptics from 'expo-haptics';
+import { FloatingLabelInput } from 'react-native-floating-label-input';
+
 
 
 function verificaCPF(strCPF) {
@@ -108,6 +111,12 @@ const Singup = ({ navigation }, props) => {
   const [cepInput, setCepInput] = useState("");
   const [sendCep, setSendCep] = useState(false);
   const [showCepModal, setShowCepModal] = useState(false);
+  const [focusCep, setFocusCep] = useState(false);
+  const [bairro, setBairro] = useState("");
+  const [rua, setRua] = useState("");
+  const [numero, setNumero] = useState("");
+  const [estado, setEstado] = useState("");
+  const [cidade, setCidade] = useState("");
 
   //modal-Sair
   const [isVisibleModalSair, setIsVisibleModalSair] = useState(false);
@@ -324,7 +333,7 @@ const Singup = ({ navigation }, props) => {
       />
       {showButton && (
         <Button
-          onPress={() => setVisibleModal(true)} //visibleModal
+          onPress={() => setShowCepModal(true)} //visibleModal
           style={{ marginTop: "-8%", marginBottom: "10%", width: "95%" }}
           text="Selecionar"
         />
@@ -608,8 +617,25 @@ const Singup = ({ navigation }, props) => {
       )}
       {showCepInput && (
         <Input
-          onSend={() => {
+          onSend={async () => {
+            await fetch(`https://viacep.com.br/ws/${cepInput}/json/`).then(
+                    Response => Response.json()).then(
+                      data => {
+                        if(data.erro == true){
+                          Alert.alert("Alerta", "CEP não encontrado")
+                        }
+                        else{
+                          //Alert.alert(JSON.stringify(data))
+                          setRua(data.logradouro)
+                          setBairro(data.bairro)
+                          setEstado(data.uf)
+                          setCidade(data.cidade)
+                        }
+                      }).catch(
+                        error => Alert.alert("Alerta", "CEP não encontrado")
+                      )
             setShowCepModal(true);
+            
           }}
           keyType="numeric"
           maxLength={9}
@@ -1097,7 +1123,7 @@ const Singup = ({ navigation }, props) => {
       <Modal
         isVisible={showCepModal}
         onRequestClose={() => setShowCepModal(false)}
-        transparent={false}
+        transparent={true}
         animationType="slideInRight"
         onBackdropPress={() => setShowCepModal(false)}
         style={{
@@ -1112,11 +1138,12 @@ const Singup = ({ navigation }, props) => {
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
             padding: "4%",
+            paddingTop: 0
           }}
         >
-          <View style={{ display: "flex", flexDirection: "row", flex: 1 }}>
+          <View style={{ display: "flex", marginTop: 0, flexDirection: "row", flex: 0.6, zIndex: 100, backgroundColor: '#181616'}}>
             <TouchableOpacity
-              style={{marginTop: "13%" }}
+              style={{marginTop: "12%" }}
               onPress={() => setShowCepModal(false)}
             >
               <AntDesign name="left" size={25} color="#ddd" />
@@ -1134,7 +1161,140 @@ const Singup = ({ navigation }, props) => {
               Endereço residencial
             </Text>
           </View>
-          <ScrollView></ScrollView>
+          <ScrollView style={{borderColor: "#fff", borderWidth: 0}}>
+            <Text style={{
+                color: COLORS.white,
+                fontFamily: "MontserratAlternates-regular",
+                fontSize: 14,
+                marginTop: "8.5%",
+                flex: 1,
+                textAlign: "left",
+              }}>
+              Verifique os dados abaixo e preencha os campos restantes.
+            </Text>
+            <FloatingLabelInput
+              label={'CEP'}
+              containerStyles={{borderBottomColor: "#DDD", borderBottomWidth: 1, marginTop: "17%", color: "#DDD", paddingBottom: 10, paddingLeft: 0}}
+              customLabelStyles={{colorBlurred: "#ccc", colorFocused: "#ccc", fontSizeFocused: 12, fontSizeBlurred: 16, leftBlurred: -1}}
+              labelStyles={{width: '100%', borderColor: "#fff", borderWidth: 0}}
+              mask={"99999-999"}
+              value={cepInput}
+              onChangeText={cepInput => setCepInput(cepInput)}
+              inputStyles={{
+                color: '#fff',
+                fontSize: 16
+              }}
+              selectionColor={'#fff'}
+              inputMode={'numeric'}
+              isFocused={focusCep}
+              onBlur={() => {
+                if (cepInput === '') {
+                  setFocusCep(false);
+                }
+                if(cepInput.length == 9){
+                  fetch(`https://viacep.com.br/ws/${cepInput}/json/`).then(
+                    Response => Response.json()).then(
+                      data => {
+                        if(data.erro == true){
+                          Alert.alert("Alerta", "CEP não encontrado")
+                        }
+                        else{
+                          //Alert.alert(JSON.stringify(data))
+                          setRua(data.logradouro)
+                          setBairro(data.bairro)
+                          setEstado(data.uf)
+                          setCidade(data.localidade)
+                          setNumero('')
+                        }
+                      }).catch(
+                        error => Alert.alert("Alerta", "CEP não encontrado")
+                      )
+                }
+
+                  
+                
+
+              }}
+              onFocus={() => {
+                setFocusCep(true)
+              }}
+            />
+            <FloatingLabelInput
+              label={'Endereço'}
+              containerStyles={{borderBottomColor: "#DDD", borderBottomWidth: 1, marginTop: "17%", color: "#DDD", paddingBottom: 10, paddingLeft: 0}}
+              customLabelStyles={{colorBlurred: "#ccc", colorFocused: "#ccc", fontSizeFocused: 12, fontSizeBlurred: 16, leftBlurred: -1}}
+              labelStyles={{width: '100%', borderColor: "#fff", borderWidth: 0}}
+              value={rua}
+              onChangeText={rua => setRua(rua)}
+              inputStyles={{
+                color: '#fff',
+                fontSize: 16
+              }}
+              selectionColor={'#fff'}
+            />
+            <FloatingLabelInput
+              autoFocus={true}
+              label={'Número'}
+              containerStyles={{borderBottomColor: "#DDD", borderBottomWidth: 1, marginTop: "17%", color: "#DDD", paddingBottom: 10, paddingLeft: 0}}
+              customLabelStyles={{colorBlurred: "#ccc", colorFocused: "#ccc", fontSizeFocused: 12, fontSizeBlurred: 16, leftBlurred: -1}}
+              labelStyles={{width: '100%', borderColor: "#fff", borderWidth: 0}}
+              value={numero}
+              onChangeText={numero => setNumero(numero)}
+              inputStyles={{
+                color: '#fff',
+                fontSize: 16,
+              }}
+              selectionColor={'#fff'}
+              inputMode='numeric'
+            />
+            <FloatingLabelInput
+              label={'Bairro'}
+              containerStyles={{borderBottomColor: "#DDD", borderBottomWidth: 1, marginTop: "17%", color: "#DDD", paddingBottom: 10, paddingLeft: 0}}
+              customLabelStyles={{colorBlurred: "#ccc", colorFocused: "#ccc", fontSizeFocused: 12, fontSizeBlurred: 16, leftBlurred: -1}}
+              labelStyles={{width: '100%', borderColor: "#fff", borderWidth: 0}}
+              value={bairro}
+              onChangeText={bairro => setBairro(bairro)}
+              inputStyles={{
+                color: '#fff',
+                fontSize: 16
+              }}
+              selectionColor={'#fff'}
+            />
+            <FloatingLabelInput
+              label={'Estado'}
+              containerStyles={{borderBottomColor: "#DDD", borderBottomWidth: 1, marginTop: "17%", color: "#DDD", paddingBottom: 10, paddingLeft: 0}}
+              customLabelStyles={{colorBlurred: "#ccc", colorFocused: "#ccc", fontSizeFocused: 12, fontSizeBlurred: 16, leftBlurred: -1}}
+              labelStyles={{width: '100%', borderColor: "#fff", borderWidth: 0}}
+              value={estado}
+              onChangeText={estado => setEstado(estado)}
+              inputStyles={{
+                color: '#999',
+                fontSize: 16
+              }}
+              selectionColor={'#fff'}
+              editable={false}
+            />
+            <FloatingLabelInput
+              label={'Cidade'}
+              containerStyles={{borderBottomColor: "#999", borderBottomWidth: 1, marginTop: "17%", color: "#DDD", paddingBottom: 10, paddingLeft: 0}}
+              customLabelStyles={{colorBlurred: "#999", colorFocused: "#999", fontSizeFocused: 12, fontSizeBlurred: 16, leftBlurred: -1}}
+              labelStyles={{width: '100%', borderColor: "#fff", borderWidth: 0}}
+              value={cidade}
+              onChangeText={cidade => setCidade(cidade)}
+              inputStyles={{
+                color: '#999',
+                fontSize: 16
+              }}
+              selectionColor={'#fff'}
+              editable={false}
+            />
+            </ScrollView>
+            <KeyboardAvoidingView behavior='position' style={{backgroundColor: '#181616', zIndex: 10, borderColor: "#fff", borderWidth: 1}}>
+            <Button
+              style={{marginBottom: "8%", width: "100%" }}
+              text="Confirmar"
+            />
+           </KeyboardAvoidingView>
         </View>
       </Modal>
     </View>
