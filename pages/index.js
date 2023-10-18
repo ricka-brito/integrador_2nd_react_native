@@ -1,9 +1,9 @@
-import Login from "./Login";
 import Singup from "./Singup";
 import Welcome from "./Welcome";
+import Home from "./home";
 
 export {
-    Login, 
     Singup,
-    Welcome
+    Welcome,
+    Home
 }

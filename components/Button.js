@@ -5,7 +5,7 @@ import COLORS from "../constants/colors";
 
 
 export default function Button(props) {
-    const {onPress, isActive = true, style, text, colors = [COLORS.secondary, COLORS.primary] } = props;
+    const {onPress, isActive = true, style, text, colors = [COLORS.secondary, COLORS.primary], color = COLORS.white } = props;
 
     return (
         <TouchableOpacity style={{
@@ -26,7 +26,7 @@ export default function Button(props) {
                     alignItems: 'center', 
                     justifyContent: 'center', 
                     borderRadius: 10,}}>
-                    <Text style={{color: COLORS.white, fontFamily: "MontserratAlternates-regular", fontSize: 16 }}>{text}</Text>
+                    <Text style={{color: color, fontFamily: "MontserratAlternates-regular", fontSize: 16 }}>{text}</Text>
                 </LinearGradient>
         </TouchableOpacity>
     )

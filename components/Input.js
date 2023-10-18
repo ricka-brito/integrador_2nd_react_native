@@ -1,4 +1,4 @@
-import { View, KeyboardAvoidingView } from 'react-native'
+import { View, KeyboardAvoidingView, Text } from 'react-native'
 import React, { useState } from 'react'
 import { TouchableOpacity } from "react-native-gesture-handler"
 import { Ionicons  } from '@expo/vector-icons';
@@ -6,7 +6,7 @@ import COLORS from "../constants/colors";
 import MaskInput from 'react-native-mask-input';
 
 export default function Input(props) {
-    const {keyType, placeHolder, formater, value, onSend, disabled, maxLength, mask} = props;
+    const {keyType, placeHolder, formater, value, onSend, disabled, maxLength, mask, prefix = null} = props;
     const [margin, setMargin] = useState('10%');
     return (
         <KeyboardAvoidingView behavior='position' 
@@ -22,10 +22,17 @@ export default function Input(props) {
             }}
             >
             <View style={{borderRadius: "50%", display: 'flex', alignItems: 'center', flexDirection: 'row', height: 50, backgroundColor: '#333', width: '95%'}}>
+            {prefix != null && <Text style={{
+                    marginLeft: 10,
+                    paddingHorizontal: 10,
+                    fontSize: 14,
+                    color: '#ddd',
+                    fontFamily: "MontserratAlternates-regular"
+                }}>{prefix}</Text>}
                 <MaskInput
                     selectionColor={'#fff'}
                     keyboardAppearance="dark"
-                    style={{fontSize: 16, color: COLORS.white, paddingLeft: 20, fontFamily: "MontserratAlternates-regular", width: "100%", flex: 1,}}
+                    style={{fontSize: 16, color: COLORS.white, paddingLeft: prefix != null ? 0 : 20, fontFamily: "MontserratAlternates-regular", width: "100%", flex: 1}}
                     placeholderTextColor="#a7a7a7"
                     onFocus={() => setMargin('6%')}
                     onBlur={() => setMargin('19%')}

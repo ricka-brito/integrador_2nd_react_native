@@ -1,20 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  SafeAreaView,
   View,
   TouchableOpacity,
   Text,
-  TextInput,
   KeyboardAvoidingView,
   LayoutAnimation,
   Alert,
 } from "react-native";
 import { GiftedChat, Bubble } from "react-native-gifted-chat";
 import * as Animatable from "react-native-animatable";
-import { LinearGradient } from "expo-linear-gradient";
 import Modal from "react-native-modal";
 import COLORS from "../constants/colors";
-//import Checkbox from 'expo-checkbox';
 import Checkbox from "../components/Checkbox.js";
 import Button from "../components/Button";
 import Input from "../components/Input";
@@ -23,10 +19,11 @@ import { AntDesign } from "@expo/vector-icons";
 import uuid from "react-native-uuid";
 import { ScrollView } from "react-native-gesture-handler";
 import { TypingAnimation } from "react-native-typing-animation";
-import * as Haptics from 'expo-haptics';
-import { FloatingLabelInput } from 'react-native-floating-label-input';
-import { Camera } from 'expo-camera';
+import * as Haptics from "expo-haptics";
+import { FloatingLabelInput } from "react-native-floating-label-input";
 import CameraModal from "../components/cameraModal";
+import { createNumberMask } from "react-native-mask-input";
+import ProgressIndicator from "../components/ProgressIndicator";
 
 function verificaCPF(strCPF) {
   strCPF = strCPF.replaceAll(".", "").replaceAll("-", "");
@@ -54,16 +51,7 @@ function verificaCPF(strCPF) {
   return true;
 }
 
-function applyMask(inputField) {
-  // Remove todos os caracteres não numéricos
-  let phoneNumber = inputField.replaceAll(/\D/g, "");
-
-  if (phoneNumber == 2) return phoneNumber;
-}
-
 const Singup = ({ navigation }, props) => {
-
-
   const { fontsLoaded } = props;
   const [messages, setMessages] = useState([]);
   const [showButton, setShowButton] = useState(false);
@@ -121,23 +109,45 @@ const Singup = ({ navigation }, props) => {
   const [cidade, setCidade] = useState("");
   const [complemento, setComplemento] = useState("");
   const [numeroInvalido, setNumeroInvalido] = useState(false);
-  const [cepValido, setCepValido] = useState(true)
+  const [cepValido, setCepValido] = useState(true);
   const [enviarEnd, setEnviarEnder] = useState(false);
 
   // foto
   const [showFotoButton, setShowFotoButton] = useState(false);
-  const [showFotoModal, setShowFotoModal] = useState(false)
+  const [showFotoModal, setShowFotoModal] = useState(false);
+  const [photo, setPhoto] = useState();
+
+  // salario
+  const [salario, setSalario] = useState();
+  const [showInputSalario, setShowInputSalario] = useState(false);
+  const [sendSalario, setSendSalario] = useState(false);
+
+  // proposta
+  const [showButtonProposta, setShowButtonProposta] = useState(false);
+  const [propostaAceita, setPropostaAceita] = useState(false);
+  const [showModalProposta, setShowModalProposta] = useState(false);
 
   //modal-Sair
   const [isVisibleModalSair, setIsVisibleModalSair] = useState(false);
   const [sair, setSair] = useState(false);
 
-  //sending 
-  const [sending, setSending] = useState(false)
-  const messageDelay = 500; // 2 segundos de atraso entre mensagens
+  // Fim
+  const [showButtonContinuar, setShowButtonContinuar] = useState(false);
+
+  //sending
+  const [sending, setSending] = useState(false);
+  const messageDelay = 2000; // 2 segundos de atraso entre mensagens
+
+  const sendAPI = async () => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve(true);
+      }, Math.random() * 3000);
+    });
+  };
 
   const addMessagesWithDelay = async (initialMessages) => {
-    setSending(true)
+    setSending(true);
     for (let i = 0; i < initialMessages.length; i++) {
       await new Promise((resolve) => setTimeout(resolve, messageDelay));
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -145,51 +155,8 @@ const Singup = ({ navigation }, props) => {
         GiftedChat.append(previousMessages, [initialMessages[i]])
       );
     }
-    setSending(false)
+    setSending(false);
   };
-
-  function formataCPF(cpf) {
-    setSendCpf(false);
-    cpf2 = cpf.replaceAll(".", "").replaceAll("-", "");
-
-    if (cpf2.length == 4) {
-      return cpf2.slice(0, 3) + "." + cpf2.slice(3, 4);
-    } else if (cpf2.length == 7) {
-      return cpf2.slice(0, 3) + "." + cpf2.slice(3, 6) + "." + cpf2.slice(6, 7);
-    } else if (cpf2.length == 10) {
-      return (
-        cpf2.slice(0, 3) +
-        "." +
-        cpf2.slice(3, 6) +
-        "." +
-        cpf2.slice(6, 9) +
-        "-" +
-        cpf2.slice(9, 11)
-      );
-    } else if (cpf2.length == 3) {
-      return cpf2;
-    } else if (cpf2.length == 6) {
-      return cpf2.slice(0, 3) + "." + cpf2.slice(3, 6);
-    } else if (cpf2.length == 9) {
-      return cpf2.slice(0, 3) + "." + cpf2.slice(3, 6) + "." + cpf2.slice(6, 9);
-    } else if (cpf2.length == 11) {
-      valido = verificaCPF(cpf2);
-      if (!valido) {
-        setSendCpf(false);
-      } else {
-        setSendCpf(true);
-      }
-      return (
-        cpf2.slice(0, 3) +
-        "." +
-        cpf2.slice(3, 6) +
-        "." +
-        cpf2.slice(6, 9) +
-        "-" +
-        cpf2.slice(9, 11)
-      );
-    } else return cpf;
-  }
 
   useEffect(() => {
     const initialMessages = [
@@ -290,7 +257,16 @@ const Singup = ({ navigation }, props) => {
         renderDay={() => null}
         onLongPress={() => null}
         minInputToolbarHeight={60}
-        renderFooter={() => sending ? <TypingAnimation style={{height: "3%", marginLeft: "4%"}} dotColor="#ccc" dotRadius={4.5} dotMargin={7}/> : null}
+        renderFooter={() =>
+          sending ? (
+            <TypingAnimation
+              style={{ height: "3%", marginLeft: "4%" }}
+              dotColor="#ccc"
+              dotRadius={4.5}
+              dotMargin={7}
+            />
+          ) : null
+        }
         renderBubble={(props) => {
           const { currentMessage } = props;
           const { botao } = currentMessage;
@@ -304,38 +280,41 @@ const Singup = ({ navigation }, props) => {
             },
           };
           return (
-            <Animatable.View animation={fadeIn} duration={200} easing={"linear"}> 
+            <Animatable.View
+              animation={fadeIn}
+              duration={200}
+              easing={"linear"}
+            >
               <Bubble
-                            {...props}
-                            renderCustomView={() => (botao ? botao : null)}
-                            isCustomViewBottom={true}
-                            wrapperStyle={{
-                              left: {
-                                backgroundColor: "#333",
-                                padding: 10,
-                              },
-                              right: {
-                                backgroundColor: "#eeeeee",
-                                padding: 10,
-                                marginBottom: 20,
-                                marginTop: 20,
-                              },
-                            }}
-                            textStyle={{
-                              left: {
-                                fontFamily: "MontserratAlternates-regular",
-                                fontSize: 16,
-                                color: "#FFF",
-                              },
-                              right: {
-                                fontFamily: "MontserratAlternates-regular",
-                                fontSize: 16,
-                                color: "#000000",
-                              },
-                            }}
-                          />
+                {...props}
+                renderCustomView={() => (botao ? botao : null)}
+                isCustomViewBottom={true}
+                wrapperStyle={{
+                  left: {
+                    backgroundColor: "#333",
+                    padding: 10,
+                  },
+                  right: {
+                    backgroundColor: "#eeeeee",
+                    padding: 10,
+                    marginBottom: 20,
+                    marginTop: 20,
+                  },
+                }}
+                textStyle={{
+                  left: {
+                    fontFamily: "MontserratAlternates-regular",
+                    fontSize: 16,
+                    color: "#FFF",
+                  },
+                  right: {
+                    fontFamily: "MontserratAlternates-regular",
+                    fontSize: 16,
+                    color: "#000000",
+                  },
+                }}
+              />
             </Animatable.View>
-            
           );
         }}
         inverted={true}
@@ -343,7 +322,7 @@ const Singup = ({ navigation }, props) => {
       />
       {showButton && (
         <Button
-          onPress={() => setShowFotoModal(true)} //visibleModal
+          onPress={() => setVisibleModal(true)} //visibleModal
           style={{ marginTop: "-8%", marginBottom: "10%", width: "95%" }}
           text="Selecionar"
         />
@@ -445,7 +424,6 @@ const Singup = ({ navigation }, props) => {
           ]}
         />
       )}
-
       {showNomeInput && (
         <Input
           onSend={async () => {
@@ -506,7 +484,6 @@ const Singup = ({ navigation }, props) => {
           }}
         />
       )}
-
       {showEmailInput && (
         <Input
           onSend={async () => {
@@ -642,16 +619,69 @@ const Singup = ({ navigation }, props) => {
           }}
         />
       )}
-
-      {
-        showFotoButton && (
-          <Button
-            onPress={() => setShowFotoModal(true)}
-            style={{ marginTop: "-8%", marginBottom: "10%", width: "95%" }}
-            text="Tirar foto"
-          />
-        )
-      }
+      {showFotoButton && (
+        <Button
+          onPress={() => setShowFotoModal(true)}
+          style={{ marginTop: "-8%", marginBottom: "10%", width: "95%" }}
+          text="Tirar foto"
+        />
+      )}
+      {showInputSalario && (
+        <Input
+          keyType="numeric"
+          mask={createNumberMask({
+            delimiter: ".",
+            separator: ",",
+            precision: 2,
+          })}
+          prefix="R$"
+          placeHolder="0,00"
+          value={salario}
+          formater={(salario) => {
+            setSalario(salario);
+            setSendSalario(salario.length > 0);
+          }}
+          disabled={sendSalario}
+          onSend={async () => {
+            setShowInputSalario(false);
+            onSend({
+              _id: 31,
+              text: `R$ ${salario}`,
+              createdAt: new Date(),
+              user: {
+                _id: 1,
+                name: "User",
+              },
+            });
+            await addMessagesWithDelay([
+              {
+                _id: 32,
+                text: "Para terminar, você precisa aceitar os termos de abertura de conta.",
+                createdAt: new Date(),
+                user: {
+                  _id: 2,
+                  name: "Bot",
+                },
+              },
+            ]);
+            setShowButtonProposta(true);
+          }}
+        />
+      )}
+      {showButtonProposta && (
+        <Button
+          onPress={() => setShowModalProposta(true)}
+          style={{ marginTop: "-8%", marginBottom: "10%", width: "95%" }}
+          text="Ver proposta"
+        />
+      )}
+      {showButtonContinuar && (
+        <Button
+          onPress={() => navigation.goBack()}
+          style={{ marginTop: "-8%", marginBottom: "10%", width: "95%" }}
+          text="Ok"
+        />
+      )}
 
       <Modal
         isVisible={visibleModal}
@@ -883,7 +913,6 @@ const Singup = ({ navigation }, props) => {
                 borderColor: "#ddd",
                 borderRadius: 10,
                 borderWidth: 1,
-                color: "#ddd",
               }}
             />
             <Button
@@ -1100,9 +1129,10 @@ const Singup = ({ navigation }, props) => {
                 setDeuErroSenha(true);
                 Haptics.notificationAsync(
                   Haptics.NotificationFeedbackType.Error
-                )
-                refInputConfirmPassword.current.shake().then(() => setConfirmPassword(''))
-
+                );
+                refInputConfirmPassword.current
+                  .shake()
+                  .then(() => setConfirmPassword(""));
               } else {
                 setWillShowConfirmPasswordModal(true);
                 setShowConfirmPasswordModal(false);
@@ -1129,64 +1159,75 @@ const Singup = ({ navigation }, props) => {
         transparent={true}
         animationIn="slideInRight"
         animationOut="slideOutRight"
-        onModalShow={async() => {
-          await fetch(`https://viacep.com.br/ws/${cepInput}/json/`).then(
-            Response => Response.json()).then(
-              data => {
-                if(data.erro == true){
-                  setCepValido(false)
-                  Alert.alert("Alerta", "CEP não encontrado")
-                }
-                else{
-                  //Alert.alert(JSON.stringify(data))
-                  setRua(data.logradouro)
-                  setBairro(data.bairro)
-                  setEstado(data.uf)
-                  setCidade(data.localidade)
-                  setCepValido(true)
-                }
-              })
+        onModalShow={async () => {
+          await fetch(`https://viacep.com.br/ws/${cepInput}/json/`)
+            .then((Response) => Response.json())
+            .then((data) => {
+              if (data.erro == true) {
+                setCepValido(false);
+                Alert.alert("Alerta", "CEP não encontrado");
+              } else {
+                //Alert.alert(JSON.stringify(data))
+                setRua(data.logradouro);
+                setBairro(data.bairro);
+                setEstado(data.uf);
+                setCidade(data.localidade);
+                setCepValido(true);
+              }
+            });
         }}
-        onModalHide={!enviarEnd ? () =>
-        {
-          setRua('')
-          setBairro('')
-          setEstado('')
-          setCidade('')
-          setNumero('')
-        }: async () => {
-          setShowCepInput(false)
-          onSend({
-            _id: 25,
-            text: `${cepInput}\n${rua}\n${bairro}\n${cidade} - ${estado}`,
-            createdAt: new Date(),
-            user: {
-              _id: 1,
-              name: "User",
-            },
-          });
-          await addMessagesWithDelay([
-            {
-              _id: 26,
-              text: "Endereço cadastradado.",
-              createdAt: new Date(),
-              user: {
-                _id: 2,
-                name: "Bot",
-              },
-            },
-            {
-              _id: 27,
-              text: "Vamos precisar de uma selfie para confirmar sua identidade",
-              createdAt: new Date(),
-              user: {
-                _id: 2,
-                name: "Bot",
-              },
-            },
-          ]);
-          setShowFotoButton(true)
-        }}
+        onModalHide={
+          !enviarEnd
+            ? () => {
+                setRua("");
+                setBairro("");
+                setEstado("");
+                setCidade("");
+                setNumero("");
+              }
+            : async () => {
+                setShowCepInput(false);
+                onSend({
+                  _id: 25,
+                  text: `${cepInput}\n${rua}\n${bairro}\n${cidade} - ${estado}`,
+                  createdAt: new Date(),
+                  user: {
+                    _id: 1,
+                    name: "User",
+                  },
+                });
+                await addMessagesWithDelay([
+                  {
+                    _id: 26,
+                    text: "Endereço cadastradado.",
+                    createdAt: new Date(),
+                    user: {
+                      _id: 2,
+                      name: "Bot",
+                    },
+                  },
+                  {
+                    _id: 27,
+                    text: "Vamos precisar de uma selfie para confirmar sua identidade",
+                    createdAt: new Date(),
+                    user: {
+                      _id: 2,
+                      name: "Bot",
+                    },
+                  },
+                  {
+                    _id: 28,
+                    text: "Importante: A selfie deve ser do titular do CPF que está abrindo a conta.",
+                    createdAt: new Date(),
+                    user: {
+                      _id: 2,
+                      name: "Bot",
+                    },
+                  },
+                ]);
+                setShowFotoButton(true);
+              }
+        }
         onBackdropPress={() => setShowCepModal(false)}
         style={{
           margin: 0,
@@ -1200,12 +1241,20 @@ const Singup = ({ navigation }, props) => {
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
             padding: "4%",
-            paddingTop: 0
+            paddingTop: 0,
           }}
         >
-          <View style={{ display: "flex", marginTop: 0, flexDirection: "row", zIndex: 100, backgroundColor: '#181616'}}>
+          <View
+            style={{
+              display: "flex",
+              marginTop: 0,
+              flexDirection: "row",
+              zIndex: 100,
+              backgroundColor: "#181616",
+            }}
+          >
             <TouchableOpacity
-              style={{marginTop: "12%" }}
+              style={{ marginTop: "12%" }}
               onPress={() => setShowCepModal(false)}
             >
               <AntDesign name="left" size={25} color="#ddd" />
@@ -1223,216 +1272,380 @@ const Singup = ({ navigation }, props) => {
               Endereço residencial
             </Text>
           </View>
-          <ScrollView automaticallyAdjustKeyboardInsets={true} style={{borderColor: "#fff", borderWidth: 0, maxHeight: "100%"}}>
-            <Text style={{
+          <ScrollView
+            automaticallyAdjustKeyboardInsets={true}
+            style={{ borderColor: "#fff", borderWidth: 0, maxHeight: "100%" }}
+          >
+            <Text
+              style={{
                 color: COLORS.white,
                 fontFamily: "MontserratAlternates-regular",
                 fontSize: 14,
                 marginTop: "8.5%",
                 flex: 1,
                 textAlign: "left",
-              }}>
+              }}
+            >
               Verifique os dados abaixo e preencha os campos restantes.
             </Text>
             <FloatingLabelInput
-              label={'CEP'}
-              containerStyles={{borderBottomColor: !cepValido ? COLORS.secondary : "#ddd", borderBottomWidth: 1, marginBottom: "5%",marginTop: "17%", color: "#DDD", paddingBottom: 10, paddingLeft: 0}}
-              customLabelStyles={{colorBlurred: !cepValido ? COLORS.secondary : "#ccc", colorFocused: !cepValido ? COLORS.secondary : "#ccc", fontSizeFocused: 12, fontSizeBlurred: 16, leftBlurred: -1}}
-              labelStyles={{width: '100%', borderColor: "#fff", borderWidth: 0}}
+              label={"CEP"}
+              containerStyles={{
+                borderBottomColor: !cepValido ? COLORS.secondary : "#ddd",
+                borderBottomWidth: 1,
+                marginBottom: "5%",
+                marginTop: "17%",
+                color: "#DDD",
+                paddingBottom: 10,
+                paddingLeft: 0,
+              }}
+              customLabelStyles={{
+                colorBlurred: !cepValido ? COLORS.secondary : "#ccc",
+                colorFocused: !cepValido ? COLORS.secondary : "#ccc",
+                fontSizeFocused: 12,
+                fontSizeBlurred: 16,
+                leftBlurred: -1,
+              }}
+              labelStyles={{
+                width: "100%",
+                borderColor: "#fff",
+                borderWidth: 0,
+              }}
               mask={"99999-999"}
               value={cepInput}
-              onChangeText={cepInput => {
-                setCepInput(cepInput)
-                cepInput.length != 9 ? () => {
-                  setCepValido(false)
-                  setRua("")
-                  setBairro("")
-                  setEstado("")
-                  setCidade("")
-                  setNumero('')
-                } : setCepValido(true)
+              onChangeText={(cepInput) => {
+                setCepInput(cepInput);
+                cepInput.length != 9
+                  ? () => {
+                      setCepValido(false);
+                      setRua("");
+                      setBairro("");
+                      setEstado("");
+                      setCidade("");
+                      setNumero("");
+                    }
+                  : setCepValido(true);
               }}
               inputStyles={{
                 color: !cepValido ? COLORS.secondary : "#fff",
-                fontSize: 16
+                fontSize: 16,
               }}
               selectionColor={!cepValido ? COLORS.secondary : "#fff"}
-              inputMode={'numeric'}
+              inputMode={"numeric"}
               isFocused={focusCep}
               onBlur={() => {
-                if (cepInput === '') {
-                  setCepValido(false)
+                if (cepInput === "") {
+                  setCepValido(false);
                   setFocusCep(false);
                 }
-                if(cepInput.length == 9){
-                  fetch(`https://viacep.com.br/ws/${cepInput}/json/`).then(
-                    Response => Response.json()).then(
-                      data => {
-                        if(data.erro == true){
-                          setCepValido(false)
-                          Alert.alert("Alerta", "CEP não encontrado")
-                          setRua("")
-                          setBairro("")
-                          setEstado("")
-                          setCidade("")
-                          setNumero('')
-                        }
-                        else{
-                          //Alert.alert(JSON.stringify(data))
-                          setRua(data.logradouro)
-                          setBairro(data.bairro)
-                          setEstado(data.uf)
-                          setCidade(data.localidade)
-                          setNumero('')
-                          setCepValido(true)
-                        }
-                      })
+                if (cepInput.length == 9) {
+                  fetch(`https://viacep.com.br/ws/${cepInput}/json/`)
+                    .then((Response) => Response.json())
+                    .then((data) => {
+                      if (data.erro == true) {
+                        setCepValido(false);
+                        Alert.alert("Alerta", "CEP não encontrado");
+                        setRua("");
+                        setBairro("");
+                        setEstado("");
+                        setCidade("");
+                        setNumero("");
+                      } else {
+                        //Alert.alert(JSON.stringify(data))
+                        setRua(data.logradouro);
+                        setBairro(data.bairro);
+                        setEstado(data.uf);
+                        setCidade(data.localidade);
+                        setNumero("");
+                        setCepValido(true);
+                      }
+                    });
+                } else {
+                  setCepValido(false);
                 }
-                else {
-                  setCepValido(false)
-                }
-
-                  
-                
-
               }}
               onFocus={() => {
-                setFocusCep(true)
+                setFocusCep(true);
               }}
             />
-            {!cepValido && <View 
-                    style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            position: 'absolute',
-                            top: "23.5%",
-                            left: "0%"
-                            }}  
+            {!cepValido && (
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  position: "absolute",
+                  top: "23.5%",
+                  left: "0%",
+                }}
+              >
+                <AntDesign
+                  name="exclamationcircle"
+                  size={13}
+                  color={COLORS.secondary}
+                  style={{ marginRight: 10 }}
+                />
+                <Text
+                  style={{
+                    color: COLORS.secondary,
+                    fontFamily: "MontserratAlternates-regular",
+                  }}
                 >
-                <AntDesign name="exclamationcircle" size={13} color={COLORS.secondary} style={{marginRight: 10}}/>
-                <Text style={{color: COLORS.secondary, fontFamily: "MontserratAlternates-regular"}}>Preencha um CEP válido</Text>
-              </View>}
+                  Preencha um CEP válido
+                </Text>
+              </View>
+            )}
             <FloatingLabelInput
-              label={'Endereço'}
-              containerStyles={{borderBottomColor: !cepValido ? "#999" : "#ddd", borderBottomWidth: 1, marginTop: "17%", color: "#DDD", paddingBottom: 10, paddingLeft: 0}}
-              customLabelStyles={{colorBlurred: !cepValido ? "#999" : "#CCC", colorFocused: !cepValido ? "#999" : "#CCC", fontSizeFocused: 12, fontSizeBlurred: 16, leftBlurred: -1}}
-              labelStyles={{width: '100%', borderColor: "#fff", borderWidth: 0}}
-              value={rua}
-              onChangeText={rua => setRua(rua)}
-              inputStyles={{
-                color: '#fff',
-                fontSize: 16
+              label={"Endereço"}
+              containerStyles={{
+                borderBottomColor: !cepValido ? "#999" : "#ddd",
+                borderBottomWidth: 1,
+                marginTop: "17%",
+                color: "#DDD",
+                paddingBottom: 10,
+                paddingLeft: 0,
               }}
-              selectionColor={'#fff'}
+              customLabelStyles={{
+                colorBlurred: !cepValido ? "#999" : "#CCC",
+                colorFocused: !cepValido ? "#999" : "#CCC",
+                fontSizeFocused: 12,
+                fontSizeBlurred: 16,
+                leftBlurred: -1,
+              }}
+              labelStyles={{
+                width: "100%",
+                borderColor: "#fff",
+                borderWidth: 0,
+              }}
+              value={rua}
+              onChangeText={(rua) => setRua(rua)}
+              inputStyles={{
+                color: "#fff",
+                fontSize: 16,
+              }}
+              selectionColor={"#fff"}
               editable={cepValido}
             />
             <FloatingLabelInput
-              label={'Número'}
-              containerStyles={{borderBottomColor: numeroInvalido ? COLORS.secondary :  !cepValido ? "#999" : "#ddd", borderBottomWidth: 1, marginBottom: "3%", marginTop: "17%", color: "#DDD", paddingBottom: 10, paddingLeft: 0}}
-              customLabelStyles={{colorBlurred: numeroInvalido ? COLORS.secondary :  !cepValido ? "#999" : "#ccc", colorFocused: numeroInvalido ? COLORS.secondary :  !cepValido ? "#999" : "#ccc", fontSizeFocused: 12, fontSizeBlurred: 16, leftBlurred: -1}}
-              labelStyles={{width: '100%', borderColor: "#fff", borderWidth: 0}}
+              label={"Número"}
+              containerStyles={{
+                borderBottomColor: numeroInvalido
+                  ? COLORS.secondary
+                  : !cepValido
+                  ? "#999"
+                  : "#ddd",
+                borderBottomWidth: 1,
+                marginBottom: "3%",
+                marginTop: "17%",
+                color: "#DDD",
+                paddingBottom: 10,
+                paddingLeft: 0,
+              }}
+              customLabelStyles={{
+                colorBlurred: numeroInvalido
+                  ? COLORS.secondary
+                  : !cepValido
+                  ? "#999"
+                  : "#ccc",
+                colorFocused: numeroInvalido
+                  ? COLORS.secondary
+                  : !cepValido
+                  ? "#999"
+                  : "#ccc",
+                fontSizeFocused: 12,
+                fontSizeBlurred: 16,
+                leftBlurred: -1,
+              }}
+              labelStyles={{
+                width: "100%",
+                borderColor: "#fff",
+                borderWidth: 0,
+              }}
               value={numero}
-              onChangeText={numero => {
-                setNumero(numero)
-                setNumeroInvalido(false)
+              onChangeText={(numero) => {
+                setNumero(numero);
+                setNumeroInvalido(false);
               }}
               inputStyles={{
-                color: '#fff',
+                color: "#fff",
                 fontSize: 16,
               }}
               selectionColor={numeroInvalido ? COLORS.secondary : "#fff"}
-              inputMode='numeric'
+              inputMode="numeric"
               editable={cepValido}
             />
-            {numeroInvalido && <View 
-                    style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            position: 'absolute',
-                            top: "49.5%",
-                            left: "0"
-                            }}  
-                >
-                <AntDesign name="exclamationcircle" size={13} color={COLORS.secondary} style={{marginRight: 10}}/>
-                <Text style={{color: COLORS.secondary, fontFamily: "MontserratAlternates-regular"}}>Digite o número para prosseguir</Text>
-              </View>}
-            <FloatingLabelInput
-              label={'Complemento (Opcional)'}
-              containerStyles={{borderBottomColor:  !cepValido ? "#999" : "#ccc", borderBottomWidth: 1, marginTop: "17%", color: "#DDD", paddingBottom: 10, paddingLeft: 0}}
-              customLabelStyles={{colorBlurred:  !cepValido ? "#999" : "#ccc", colorFocused:  !cepValido ? "#999" : "#ccc", fontSizeFocused: 12, fontSizeBlurred: 16, leftBlurred: -1}}
-              labelStyles={{width: '100%', borderColor: "#fff", borderWidth: 0}}
-              value={complemento}
-              onChangeText={complemento => setComplemento(complemento)}
-              inputStyles={{
-                color: '#fff',
-                fontSize: 16
-              }}
-              selectionColor={'#fff'}
-              editable={cepValido}
-            />
-            <FloatingLabelInput
-              label={'Bairro'}
-              containerStyles={{borderBottomColor:  !cepValido ? "#999" : "#ccc", borderBottomWidth: 1, marginTop: "17%", color: "#DDD", paddingBottom: 10, paddingLeft: 0}}
-              customLabelStyles={{colorBlurred: !cepValido ? "#999" : "#ccc", colorFocused:  !cepValido ? "#999" : "#ccc", fontSizeFocused: 12, fontSizeBlurred: 16, leftBlurred: -1}}
-              labelStyles={{width: '100%', borderColor: "#fff", borderWidth: 0}}
-              value={bairro}
-              onChangeText={bairro => setBairro(bairro)}
-              inputStyles={{
-                color: '#fff',
-                fontSize: 16
-              }}
-              selectionColor={'#fff'}
-              editable={cepValido}
-            />
-            <FloatingLabelInput
-              label={'Estado'}
-              containerStyles={{borderBottomColor: "#999", borderBottomWidth: 1, marginTop: "17%", color: "#DDD", paddingBottom: 10, paddingLeft: 0}}
-              customLabelStyles={{colorBlurred: "#999", colorFocused: "#999", fontSizeFocused: 12, fontSizeBlurred: 16, leftBlurred: -1}}
-              labelStyles={{width: '100%', borderColor: "#fff", borderWidth: 0}}
-              value={estado}
-              onChangeText={estado => setEstado(estado)}
-              inputStyles={{
-                color: '#999',
-                fontSize: 16
-              }}
-              selectionColor={'#fff'}
-              editable={false}
-            />
-            <FloatingLabelInput
-              label={'Cidade'}
-              containerStyles={{borderBottomColor: "#999", borderBottomWidth: 1, marginTop: "17%", color: "#DDD", paddingBottom: 10, paddingLeft: 0}}
-              customLabelStyles={{colorBlurred: "#999", colorFocused: "#999", fontSizeFocused: 12, fontSizeBlurred: 16, leftBlurred: -1}}
-              labelStyles={{width: '100%', borderColor: "#fff", borderWidth: 0}}
-              value={cidade}
-              onChangeText={cidade => setCidade(cidade)}
-              inputStyles={{
-                color: '#999',
-                fontSize: 16
-              }}
-              selectionColor={'#fff'}
-              editable={false}
-            />
-            </ScrollView>
-            <KeyboardAvoidingView behavior='position' style={{backgroundColor: '#181616', zIndex: 10}}>
-              <View style={{paddingTop:30, backgroundColor: "#181616"}}>
-                <Button
-                  isActive={cepValido && !numeroInvalido}
-                  onPress={() => {
-                    if (numero) {
-                      setEnviarEnder(true)
-                      setShowCepModal(false)
-                    }  
-                    else{
-                      setNumeroInvalido(true)
-                    }
-                  }}
-                  style={{marginBottom: "8%", width: "100%" }}
-                  text="Confirmar"
+            {numeroInvalido && (
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  position: "absolute",
+                  top: "49.5%",
+                  left: "0",
+                }}
+              >
+                <AntDesign
+                  name="exclamationcircle"
+                  size={13}
+                  color={COLORS.secondary}
+                  style={{ marginRight: 10 }}
                 />
+                <Text
+                  style={{
+                    color: COLORS.secondary,
+                    fontFamily: "MontserratAlternates-regular",
+                  }}
+                >
+                  Digite o número para prosseguir
+                </Text>
               </View>
-           </KeyboardAvoidingView>
+            )}
+            <FloatingLabelInput
+              label={"Complemento (Opcional)"}
+              containerStyles={{
+                borderBottomColor: !cepValido ? "#999" : "#ccc",
+                borderBottomWidth: 1,
+                marginTop: "17%",
+                color: "#DDD",
+                paddingBottom: 10,
+                paddingLeft: 0,
+              }}
+              customLabelStyles={{
+                colorBlurred: !cepValido ? "#999" : "#ccc",
+                colorFocused: !cepValido ? "#999" : "#ccc",
+                fontSizeFocused: 12,
+                fontSizeBlurred: 16,
+                leftBlurred: -1,
+              }}
+              labelStyles={{
+                width: "100%",
+                borderColor: "#fff",
+                borderWidth: 0,
+              }}
+              value={complemento}
+              onChangeText={(complemento) => setComplemento(complemento)}
+              inputStyles={{
+                color: "#fff",
+                fontSize: 16,
+              }}
+              selectionColor={"#fff"}
+              editable={cepValido}
+            />
+            <FloatingLabelInput
+              label={"Bairro"}
+              containerStyles={{
+                borderBottomColor: !cepValido ? "#999" : "#ccc",
+                borderBottomWidth: 1,
+                marginTop: "17%",
+                color: "#DDD",
+                paddingBottom: 10,
+                paddingLeft: 0,
+              }}
+              customLabelStyles={{
+                colorBlurred: !cepValido ? "#999" : "#ccc",
+                colorFocused: !cepValido ? "#999" : "#ccc",
+                fontSizeFocused: 12,
+                fontSizeBlurred: 16,
+                leftBlurred: -1,
+              }}
+              labelStyles={{
+                width: "100%",
+                borderColor: "#fff",
+                borderWidth: 0,
+              }}
+              value={bairro}
+              onChangeText={(bairro) => setBairro(bairro)}
+              inputStyles={{
+                color: "#fff",
+                fontSize: 16,
+              }}
+              selectionColor={"#fff"}
+              editable={cepValido}
+            />
+            <FloatingLabelInput
+              label={"Estado"}
+              containerStyles={{
+                borderBottomColor: "#999",
+                borderBottomWidth: 1,
+                marginTop: "17%",
+                color: "#DDD",
+                paddingBottom: 10,
+                paddingLeft: 0,
+              }}
+              customLabelStyles={{
+                colorBlurred: "#999",
+                colorFocused: "#999",
+                fontSizeFocused: 12,
+                fontSizeBlurred: 16,
+                leftBlurred: -1,
+              }}
+              labelStyles={{
+                width: "100%",
+                borderColor: "#fff",
+                borderWidth: 0,
+              }}
+              value={estado}
+              onChangeText={(estado) => setEstado(estado)}
+              inputStyles={{
+                color: "#999",
+                fontSize: 16,
+              }}
+              selectionColor={"#fff"}
+              editable={false}
+            />
+            <FloatingLabelInput
+              label={"Cidade"}
+              containerStyles={{
+                borderBottomColor: "#999",
+                borderBottomWidth: 1,
+                marginTop: "17%",
+                color: "#DDD",
+                paddingBottom: 10,
+                paddingLeft: 0,
+              }}
+              customLabelStyles={{
+                colorBlurred: "#999",
+                colorFocused: "#999",
+                fontSizeFocused: 12,
+                fontSizeBlurred: 16,
+                leftBlurred: -1,
+              }}
+              labelStyles={{
+                width: "100%",
+                borderColor: "#fff",
+                borderWidth: 0,
+              }}
+              value={cidade}
+              onChangeText={(cidade) => setCidade(cidade)}
+              inputStyles={{
+                color: "#999",
+                fontSize: 16,
+              }}
+              selectionColor={"#fff"}
+              editable={false}
+            />
+          </ScrollView>
+          <KeyboardAvoidingView
+            behavior="position"
+            style={{ backgroundColor: "#181616", zIndex: 10 }}
+          >
+            <View style={{ paddingTop: 30, backgroundColor: "#181616" }}>
+              <Button
+                isActive={cepValido && !numeroInvalido}
+                onPress={() => {
+                  if (numero) {
+                    setEnviarEnder(true);
+                    setShowCepModal(false);
+                  } else {
+                    setNumeroInvalido(true);
+                  }
+                }}
+                style={{ marginBottom: "8%", width: "100%" }}
+                text="Confirmar"
+              />
+            </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
       <Modal
@@ -1446,9 +1659,370 @@ const Singup = ({ navigation }, props) => {
           margin: 0,
           justifyContent: "flex-end",
         }}
+        onModalHide={async () => {
+          if (photo) {
+            setShowFotoButton(false);
+            onSend({
+              _id: 29,
+              text: "Sucesso",
+              createdAt: new Date(),
+              user: {
+                _id: 1,
+                name: "User",
+              },
+            });
+            await addMessagesWithDelay([
+              {
+                _id: 30,
+                text: "Qual seu salário ou quanto você recebe por mês? Digite apenas a sua renda mensal, sem considerar o valor de outras pessoas da sua familia.",
+                createdAt: new Date(),
+                user: {
+                  _id: 2,
+                  name: "Bot",
+                },
+              },
+            ]);
+            setShowInputSalario(true);
+          }
+        }}
       >
-        <CameraModal retorno={() => setShowFotoModal(false)}/>
-
+        <CameraModal
+          retorno={(photo) => {
+            setPhoto(photo);
+            setShowFotoModal(false);
+          }}
+        />
+      </Modal>
+      <Modal
+        isVisible={showModalProposta}
+        onRequestClose={() => setShowModalProposta(false)}
+        transparent={true}
+        animationIn="slideInRight"
+        animationOut="slideOutRight"
+        onBackdropPress={() => setShowModalProposta(false)}
+        style={{
+          margin: 0,
+          justifyContent: "flex-end",
+        }}
+        onModalHide={async () => {
+          if (propostaAceita) {
+            setShowButtonProposta(false);
+            onSend({
+              _id: 33,
+              text: "Enviando meus dados",
+              createdAt: new Date(),
+              user: {
+                _id: 1,
+                name: "User",
+              },
+              botao: (
+                <View
+                  style={{
+                    width: "100%",
+                    paddingHorizontal: "3%",
+                    marginVertical: "10%",
+                  }}
+                >
+                  <ProgressIndicator />
+                </View>
+              ),
+            });
+            await sendAPI();
+            await addMessagesWithDelay([
+              {
+                _id: 34,
+                text: "Pronto!",
+                createdAt: new Date(),
+                user: {
+                  _id: 2,
+                  name: "Bot",
+                },
+              },
+              {
+                _id: 35,
+                text: "Vamos analisar essas informações e te responderemos em breve, por e-mail e push no seu celular.",
+                createdAt: new Date(),
+                user: {
+                  _id: 2,
+                  name: "Bot",
+                },
+              },
+              {
+                _id: 36,
+                text: "Obrigado por escolher SWIFT. 💜",
+                createdAt: new Date(),
+                user: {
+                  _id: 2,
+                  name: "Bot",
+                },
+              },
+            ]);
+            setShowButtonContinuar(true);
+          }
+        }}
+      >
+        <View
+          style={{
+            display: "flex",
+            top: 0,
+            flexDirection: "row",
+            zIndex: 10,
+            position: "absolute",
+            backgroundColor: "#181616",
+          }}
+        >
+          <TouchableOpacity
+            style={{ zIndex: 10, top: 55, left: 20, position: "absolute" }}
+            onPress={() => setShowModalProposta(false)}
+          >
+            <AntDesign name="left" size={25} color="#fff" />
+          </TouchableOpacity>
+        </View>
+        <View>
+          <ScrollView style={{ backgroundColor: "#181616", marginTop: "48%" }}>
+            <Text
+              style={{
+                color: COLORS.white,
+                textAlign: "center",
+                fontFamily: "MontserratAlternates-SemiBold",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              PROPOSTA DETALHADA PARA ABERTURA DE CONTA NO BANCO SWIFT S.A. -
+              PESSOA FISICA E PROSPECTO DE INFORMAÇÕES ESSENCIAIS DA CONTA
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                textAlign: "justify",
+                fontFamily: "MontserratAlternates-regular",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              Prezado(a) Cliente, Estamos muito contentes que você tenha
+              escolhido o Banco Swift S.A. para cuidar das suas necessidades
+              financeiras. Como parte de nosso compromisso em fornecer um
+              serviço transparente e eficiente, apresentamos abaixo uma proposta
+              mais detalhada para a abertura de conta:
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                fontFamily: "MontserratAlternates-SemiBold",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              1. Elegibilidade
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                textAlign: "justify",
+                fontFamily: "MontserratAlternates-regular",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              Para abrir uma conta no Banco Swift S.A., você deve atender aos
+              seguintes requisitos: Ser maior de 18 anos. Ser residente no
+              Brasil. Possuir documentação válida.
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                fontFamily: "MontserratAlternates-SemiBold",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              2. Documentação Necessária
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                textAlign: "justify",
+                fontFamily: "MontserratAlternates-regular",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              Para concluir a abertura da sua conta, você precisará fornecer os
+              seguintes documentos: Documento de identificação válido, como RG
+              ou CNH. CPF (Cadastro de Pessoa Física). Comprovante de residência
+              recente, como conta de luz, água, gás ou telefone.
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                fontFamily: "MontserratAlternates-SemiBold",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              3. Processo de Abertura de Conta
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                textAlign: "justify",
+                fontFamily: "MontserratAlternates-regular",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              a. Baixe e instale o aplicativo oficial do Banco Swift S.A. em seu
+              dispositivo móvel, disponível nas lojas de aplicativos. b. Siga as
+              instruções detalhadas no aplicativo para preencher o formulário de
+              inscrição. c. Envie fotos legíveis dos documentos solicitados
+              através do aplicativo. d. Após o envio, nossa equipe realizará a
+              análise da sua solicitação de abertura de conta, que pode levar
+              até 48 horas úteis. e. Uma vez aprovada, você receberá as
+              informações de sua conta, incluindo o número da conta e detalhes
+              para acesso.
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                fontFamily: "MontserratAlternates-SemiBold",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              4. Taxas e Tarifas
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                textAlign: "justify",
+                fontFamily: "MontserratAlternates-regular",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              O Banco Swift S.A. tem o compromisso de proporcionar uma
+              experiência financeira acessível. Oferecemos uma conta digital sem
+              tarifas mensais de manutenção. No entanto, é importante observar
+              que certas transações específicas podem estar sujeitas a tarifas,
+              como saques em caixas eletrônicos de terceiros ou transferências
+              internacionais. Consulte nossa tabela de tarifas para obter
+              informações detalhadas.
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                fontFamily: "MontserratAlternates-SemiBold",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              5. Segurança
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                textAlign: "justify",
+                fontFamily: "MontserratAlternates-regular",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              Sua segurança é nossa prioridade. Utilizamos medidas avançadas de
+              segurança para proteger suas informações pessoais e financeiras.
+              Certifique-se de manter suas credenciais de acesso em sigilo e não
+              compartilhá-las com terceiros.
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                fontFamily: "MontserratAlternates-SemiBold",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              6. Suporte ao Cliente
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                textAlign: "justify",
+                fontFamily: "MontserratAlternates-regular",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              Estamos disponíveis 24 horas por dia, 7 dias por semana, para
+              atender às suas necessidades. Você pode entrar em contato conosco
+              pelo aplicativo, site ou telefone para obter assistência ou
+              esclarecimentos.
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                fontFamily: "MontserratAlternates-SemiBold",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              7. Encerramento de Conta
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                textAlign: "justify",
+                fontFamily: "MontserratAlternates-regular",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              Se, por qualquer motivo, desejar encerrar sua conta no Banco Swift
+              S.A., entre em contato com nossa equipe de suporte ao cliente.
+              Esteja ciente de que podem ser aplicadas taxas de encerramento, e
+              é necessário resolver todos os saldos e obrigações pendentes antes
+              do encerramento.
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                textAlign: "justify",
+                fontFamily: "MontserratAlternates-regular",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              Agradecemos por considerar o Banco Swift S.A. como seu parceiro
+              financeiro. Ao abrir uma conta conosco, você está concordando com
+              os termos e condições detalhados nesta proposta. Estamos aqui para
+              ajudá-lo a alcançar seus objetivos financeiros e a tornar sua
+              experiência bancária mais simples e eficaz.
+            </Text>
+            <Text
+              style={{
+                color: COLORS.white,
+                textAlign: "justify",
+                fontFamily: "MontserratAlternates-regular",
+                paddingHorizontal: "1%",
+                marginBottom: 10,
+              }}
+            >
+              Se tiver alguma dúvida adicional ou precisar de esclarecimentos
+              adicionais, não hesite em entrar em contato conosco. Bem-vindo ao
+              Banco Swift S.A., onde suas finanças estão em boas mãos.
+            </Text>
+          </ScrollView>
+          <View style={{ paddingTop: 30, backgroundColor: "#181616" }}>
+            <Button
+              onPress={() => {
+                setPropostaAceita(true);
+                setShowModalProposta(false);
+              }}
+              style={{ marginBottom: "8%", width: "100%" }}
+              text="Li e estou de acordo"
+            />
+          </View>
+        </View>
       </Modal>
     </View>
   );

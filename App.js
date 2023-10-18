@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Login, Welcome, Singup} from './pages';
+import { Welcome, Singup, Home} from './pages';
 
 const Stack = createStackNavigator()
 export default function App() {
@@ -19,18 +19,18 @@ export default function App() {
         }}
         />
         <Stack.Screen
-        name='Login'
-        component={Login}
-        options={{
-          headerShown: false
-        }}
-        />
-        <Stack.Screen
         name='Signup'
         component={Singup}
         options={{
           headerShown: false,
           gestureEnabled: false
+        }}
+        />
+        <Stack.Screen
+        name='Home'
+        component={Home}
+        options={{
+          headerShown: false
         }}
         />
 

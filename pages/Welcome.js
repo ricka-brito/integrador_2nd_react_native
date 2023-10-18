@@ -6,7 +6,6 @@ import Font, {useFonts} from 'expo-font';
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { Shadow } from 'react-native-shadow-2';
 import * as SplashScreen from 'expo-splash-screen';
-import Login from './Login';
 import Modal from "react-native-modal";
 import { AntDesign } from '@expo/vector-icons';
 import FlashMessage, { showMessage } from 'react-native-flash-message';
@@ -50,8 +49,12 @@ function verificaCPF(strCPF){
 
 const Welcome = ({ navigation }) => {
 
-    async function handleSenha() {
-
+    async function handleSenha(senha) {
+        console.log(senha)
+        if (senha == "123456"){
+            setVisibleModalPassword(false)
+            navigation.navigate("Home", {fontsLoaded:fontsLoaded})
+        }
     }
 
 
@@ -117,6 +120,14 @@ const Welcome = ({ navigation }) => {
         'MontserratAlternates-SemiBold': require('../assets/fonts/MontserratAlternates-SemiBold.ttf'),
         'MontserratAlternates-thin': require('../assets/fonts/MontserratAlternates-Thin.ttf'),
         'MontserratAlternates-regular': require('../assets/fonts/MontserratAlternates-Regular.ttf'),
+        'MontserratAlternates-Black': require('../assets/fonts/MontserratAlternates-Black.ttf'),
+        'MontserratAlternates-Bold': require('../assets/fonts/MontserratAlternates-Bold.ttf'),
+        'MontserratAlternates-ExtraBold': require('../assets/fonts/MontserratAlternates-ExtraBold.ttf'),
+        'MontserratAlternates-ExtraLight': require('../assets/fonts/MontserratAlternates-ExtraLight.ttf'),
+        'MontserratAlternates-Light': require('../assets/fonts/MontserratAlternates-Light.ttf'),
+        'MontserratAlternates-Medium': require('../assets/fonts/MontserratAlternates-Medium.ttf'),
+
+    
     });
 
     const [visibleModal, setVisibleModal] = useState(false);
@@ -455,7 +466,7 @@ const Welcome = ({ navigation }) => {
                         restrictToNumbers={true}
                         animated={false}
                         cellSpacing={1}
-                        onFulfill={handleSenha}
+                        onFulfill={(senha) => handleSenha(senha)}
                     />
                     <TouchableOpacity style={{marginTop: "7%"}}>
                         <Text style={{
