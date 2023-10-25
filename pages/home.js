@@ -1,6 +1,8 @@
 import {ImageBackground, View, Text, Image, FlatList, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { AntDesign } from "@expo/vector-icons";
+import DraggableSheet from '../components/draggableSheet';
+
 
 
 export default function Home() {
@@ -94,6 +96,7 @@ export default function Home() {
                     </View>
                 </View>
                 <FlatList 
+                scrollEnabled={false}
                 data={buttons} 
                 style={{flex: 5, marginHorizontal: 'auto', width: "85%", marginTop: "10%"}}
                 numColumns={5} 
@@ -107,9 +110,14 @@ export default function Home() {
                             </TouchableOpacity>
                     )
                 }}/>
-
-
-            
+                <DraggableSheet>
+                    <View style={{width: "85%", marginTop: '2%', alignSelf: "center", display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+                        <Text style={{fontFamily: 'MontserratAlternates-Medium', color: "#fff", fontSize: 23}}>Ultimas transações</Text>
+                        <TouchableOpacity>
+                            <Image resizeMode="contain" style={{ width: 30, height: 30}} source={{uri: "https://i.ibb.co/MV8rDdm/search.png"}}/>
+                        </TouchableOpacity>
+                    </View>
+                </DraggableSheet>
             </ImageBackground>
         </View>
   )
