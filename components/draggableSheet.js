@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'; // Import useRef from 'react'
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, TouchableOpacity, Image } from 'react-native';
 import { WINDOW_HEIGHT } from '../constants/utils';
 import { PanResponder } from 'react-native';
 
@@ -65,6 +65,12 @@ const DraggableSheet = ({children}) => {
       <Animated.View style={[styles.bottomSheet, bottomSheetAnimation]}>
         <View style={styles.draggableArea} {...panResponder.current.panHandlers}>
           <View style={styles.dragHandle} />
+          <View style={{width: "85%", marginTop: '2%', alignSelf: "center", display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginBottom: "8%"}}>
+                        <Text style={{fontFamily: 'MontserratAlternates-Medium', color: "#fff", fontSize: 23}}>Ultimas transações</Text>
+                        <TouchableOpacity>
+                            <Image resizeMode="contain" style={{ width: 30, height: 30}} source={{uri: "https://i.ibb.co/MV8rDdm/search.png"}}/>
+                        </TouchableOpacity>
+                    </View>
         </View>
         {children}
       </Animated.View>
@@ -93,6 +99,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   dragHandle: {
+    marginTop: '3%',
+    marginBottom: '5%',
     width: 100,
     height: 4,
     backgroundColor: '#444',
@@ -100,7 +108,6 @@ const styles = StyleSheet.create({
   },
   draggableArea: {
     width: "100%",
-    height: 35,
     alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',

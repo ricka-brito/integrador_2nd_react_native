@@ -2,7 +2,7 @@ import {ImageBackground, View, Text, Image, FlatList, TouchableOpacity } from 'r
 import React from 'react'
 import { AntDesign } from "@expo/vector-icons";
 import DraggableSheet from '../components/draggableSheet';
-
+import Transaction from "../components/transaction";
 
 
 export default function Home() {
@@ -28,6 +28,51 @@ export default function Home() {
             icon: 'https://i.ibb.co/HPYtq1b/dots.png',
             desc: 'Ver todos'
         }
+    ]
+
+    const transactions = [
+        {
+            nome: 'Transferencia - PIX',
+            valor: 10.00,
+            pago: '',
+            data: new Date(2023, 9, 26, 11, 55),
+            tipo: 'transferencia'
+        },
+        {
+            nome: 'Pagamento cartão',
+            valor: -523.00,
+            pago: 'Pago',
+            data: new Date(2023, 9, 25, 10, 55),
+            tipo: 'subir'
+        },
+        {
+            nome: 'Compra 8873 *UBERX',
+            valor: 12.00,
+            pago: '+R$ 0,12',
+            data: new Date(2023, 9, 25, 10, 55),
+            tipo: 'pagar'
+        },
+        {
+            nome: 'Compra 8873 *UBERX',
+            valor: 12.00,
+            pago: '+R$ 0,12',
+            data: new Date(2023, 9, 25, 10, 55),
+            tipo: 'pagar'
+        },
+        {
+            nome: 'Compra 8873 *UBERX',
+            valor: 12.00,
+            pago: '+R$ 0,12',
+            data: new Date(2023, 9, 25, 10, 55),
+            tipo: 'pagar'
+        },
+        {
+            nome: 'Compra 8873 *UBERX',
+            valor: 12.00,
+            pago: '+R$ 0,12',
+            data: new Date(2023, 9, 25, 10, 55),
+            tipo: 'pagar'
+        },
     ]
     
     return (
@@ -111,12 +156,15 @@ export default function Home() {
                     )
                 }}/>
                 <DraggableSheet>
-                    <View style={{width: "85%", marginTop: '2%', alignSelf: "center", display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-                        <Text style={{fontFamily: 'MontserratAlternates-Medium', color: "#fff", fontSize: 23}}>Ultimas transações</Text>
-                        <TouchableOpacity>
-                            <Image resizeMode="contain" style={{ width: 30, height: 30}} source={{uri: "https://i.ibb.co/MV8rDdm/search.png"}}/>
-                        </TouchableOpacity>
-                    </View>
+                    <FlatList
+                    data={transactions}
+                    numColumns={1}
+                    renderItem={({item}) => {
+                        return (
+                            <Transaction nome={item.nome} valor={item.valor} data={item.data} tipo={item.tipo} pago={item.pago}/>
+                        )
+                    }}
+                    />
                 </DraggableSheet>
             </ImageBackground>
         </View>
