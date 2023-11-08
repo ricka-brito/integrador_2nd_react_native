@@ -5,28 +5,33 @@ import DraggableSheet from '../components/draggableSheet';
 import Transaction from "../components/transaction";
 
 
-export default function Home() {
+export default function Home({navigation}) {
 
     const buttons = [
         { 
             icon: 'https://i.ibb.co/qWhKsyh/card.png',
-            desc: 'Cartões'
+            desc: 'Cartões',
+            onPress: () => {}
         },
         {
             icon: 'https://i.ibb.co/8sG13XC/code.png',
-            desc: 'Pagar'
+            desc: 'Pagar',
+            onPress: () => {navigation.navigate("Pay")}
         },
         {
             icon: 'https://i.ibb.co/QHnvYZR/trocar.png',
-            desc: 'Transferir'
+            desc: 'Transferir',
+            onPress: () => {navigation.navigate("Transference")}
         },
         {
             icon: 'https://i.ibb.co/YBHF6V6/savings-FILL0-wght300-GRAD0-opsz48-1-1.png',
-            desc: 'Guardar'
+            desc: 'Guardar',
+            onPress: () => {}
         },
         {
             icon: 'https://i.ibb.co/HPYtq1b/dots.png',
-            desc: 'Ver todos'
+            desc: 'Ver todos',
+            onPress: () => {}
         }
     ]
 
@@ -36,21 +41,21 @@ export default function Home() {
             valor: 10.00,
             pago: '',
             data: new Date(2023, 9, 26, 11, 55),
-            tipo: 'transferencia'
+            tipo: 'transferencia',
         },
         {
             nome: 'Pagamento cartão',
             valor: -523.00,
             pago: 'Pago',
             data: new Date(2023, 9, 25, 10, 55),
-            tipo: 'subir'
+            tipo: 'subir',
         },
         {
             nome: 'Compra 8873 *UBERX',
             valor: 12.00,
             pago: '+R$ 0,12',
             data: new Date(2023, 9, 25, 10, 55),
-            tipo: 'pagar'
+            tipo: 'pagar',
         },
         {
             nome: 'Compra 8873 *UBERX',
@@ -147,7 +152,7 @@ export default function Home() {
                 numColumns={5} 
                 renderItem={({ item }) => {
                     return (
-                            <TouchableOpacity style={{width: '20%', margin: 0, padding: 1, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                            <TouchableOpacity style={{width: '20%', margin: 0, padding: 1, display: 'flex', alignItems: 'center', justifyContent: 'center'}} onPress={item.onPress}>
                                 <View style={{padding: 9, borderRadius: 10, backgroundColor: "rgba(49,49,49,0.78)"}}>
                                     <Image resizeMode="contain" style={{ width: 35, height: 35}} source={{uri: item.icon}}/>
                                 </View>

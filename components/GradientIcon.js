@@ -1,18 +1,19 @@
 import React from 'react';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { AntDesign } from '@expo/vector-icons';
+import COLORS from '../constants/colors';
 
 const GradientIcon = (props) => {
   return (
-    <MaskedView maskElement={<MaterialCommunityIcons {...props} />}>
+    <MaskedView maskElement={<AntDesign {...props} />}>
       <LinearGradient
-        colors={props.colors}
-        start={props.start}
-        end={props.end}
+        colors={[COLORS.primary, COLORS.secondary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
         //locations={props.locations}
         >
-        <MaterialCommunityIcons
+        <AntDesign
           {...props}
           style={{
             opacity: 0,

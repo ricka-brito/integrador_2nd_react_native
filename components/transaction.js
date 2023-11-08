@@ -1,5 +1,7 @@
-import { View, Text, Image } from 'react-native'
+import { View, Text, Image, TouchableOpacity } from 'react-native'
 import React from 'react'
+import { AntDesign } from "@expo/vector-icons";
+
 
 export default function Transaction({nome, valor, pago, data, tipo}) {
 
@@ -25,7 +27,7 @@ export default function Transaction({nome, valor, pago, data, tipo}) {
   const data_string = (sameDay(data, hoje) ? "Hoje" : datediff(data, hoje) == 1 ? "Ontem" : datediff(data, hoje) <= 6 ? semana[data.getDay()] : data.getDate() + "/" + (data.getMonth()+1)) + " - " + data.getHours() + ":" + data.getMinutes() 
 
   return (
-    <View style={{alignSelf: 'center', width: "85%", display: 'flex', flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: "#686868", marginBottom: "5%"}}>
+    <TouchableOpacity style={{alignSelf: 'center', width: "85%", display: 'flex', flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: "#686868", marginBottom: "5%"}}>
       <View style={{marginBottom: "7%"}}>
         <Image resizeMode="contain" style={{ width:45, height: 45}} source={icon}/>
       </View>
@@ -49,7 +51,8 @@ export default function Transaction({nome, valor, pago, data, tipo}) {
             {pago} 
           </Text>
         </View>
+        <AntDesign style={{alignSelf: 'center'}} name="right" size={15} color="#ddd" />
       </View>
-    </View>
+    </TouchableOpacity>
   )
 }
