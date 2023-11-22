@@ -10,19 +10,29 @@ import Modal from "react-native-modal";
 import { AntDesign } from '@expo/vector-icons';
 import FlashMessage, { showMessage } from 'react-native-flash-message';
 import SmoothPinCodeInput from 'react-native-smooth-pincode-input';
+import * as Haptics from "expo-haptics";
 
 
+const getCpfs = async (cpf) => {
+    
+    return await fetch("https://f21f-189-57-188-42.ngrok-free.app/api/v1/user/cpf-validation/", {
+        method: "POST",
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({"cpf": cpf.replaceAll(".", "").replaceAll("-", "")})
+    }).then(response => response.json()).then(data => data)
 
-const getCpfs = async () => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {resolve({
-        users: [
-          { cpf: "26973816860" },
-        ]
-      })}, Math.random() * 3000)
-    })
-  }
-
+//     return new Promise((resolve, reject) => {
+//       setTimeout(() => {resolve({
+//         users: [
+//           { cpf: "26973816860" },
+//         ]
+//       })}, Math.random() * 3000)
+//     })
+//   }
+}
 function verificaCPF(strCPF){
     strCPF = strCPF.replaceAll(".", "").replaceAll("-", "")
     var Soma;
@@ -49,20 +59,56 @@ function verificaCPF(strCPF){
 
 const Welcome = ({ navigation }) => {
 
-    async function handleSenha(senha) {
-        console.log(senha)
-        if (senha == "123456"){
-            setVisibleModalPassword(false)
-            navigation.navigate("Home", {fontsLoaded:fontsLoaded})
+    async function handleSenha(cpf, password) {
+        console.log(cpf)
+        console.log(password)
+        try {
+            const response = await fetch("https://f21f-189-57-188-42.ngrok-free.app/api/token/", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({"cpf": cpf.replaceAll(".", "").replaceAll("-", ""), "password": password})
+            });
+    
+            const data = await response.json();
+            const status_code = response.status;
+
+            if(status_code == 200){
+                setVisibleModalPassword(false)
+                navigation.navigate("Home", {fontsLoaded:fontsLoaded})
+            }
+            else {
+                Haptics.notificationAsync(
+                  Haptics.NotificationFeedbackType.Error
+                );
+                refInputSenha.current
+                  .shake()
+                  .then(() => setSenha(""));
+              }
+    
+            return { data, status_code };
+        } catch (error) {
+            console.error('Fetch error:', error);
+            return { error: error.message };
         }
+    
+
+        // console.log(password)
+        // if (password == "123456"){
+        //     setVisibleModalPassword(false)
+        //     navigation.navigate("Home", {fontsLoaded:fontsLoaded})
+        // }
     }
 
 
     async function handleLogar() {
         setLoading(true)
-        let user = await getCpfs();
+        let user = await getCpfs(cpf);
+        console.log(user)
         setLoading(false)
-        if(user.users.find(o => o.cpf == cpf.replaceAll(".", "").replaceAll("-", ""))){
+        if(user.exists){
             setCpfExist(true)
         }
         else {
@@ -70,7 +116,7 @@ const Welcome = ({ navigation }) => {
         }
         setVisibleModal(false)
         setMostrou(true)
-        setCpf(""); 
+        // setCpf(""); 
         setCpfColor(COLORS.white), 
         setCoresBotao(['#888', '#888']), 
         setEstadoBotao(true)
@@ -164,7 +210,6 @@ const Welcome = ({ navigation }) => {
             alignItems: 'center',
             padding: 0
         }}
-        onLayout={onLayoutRootView}
         >
             <Image
                 source={require("../assets/r-l-e2jMoCvoKY4-unsplash.jpg")} 
@@ -224,7 +269,6 @@ const Welcome = ({ navigation }) => {
                             backgroundColor: COLORS.white
                         }}
                         onPress={() => {
-                            navigation.removeListener
                             navigation.navigate("Signup", {fontsLoaded:fontsLoaded})
                         }}
                     >
@@ -464,9 +508,8 @@ const Welcome = ({ navigation }) => {
                         autoFocus={true}
                         codeLength={6}
                         restrictToNumbers={true}
-                        animated={false}
                         cellSpacing={1}
-                        onFulfill={(senha) => handleSenha(senha)}
+                        onFulfill={(senha) => handleSenha(cpf, senha)}
                     />
                     <TouchableOpacity style={{marginTop: "7%"}}>
                         <Text style={{
