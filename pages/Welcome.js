@@ -15,7 +15,7 @@ import * as Haptics from "expo-haptics";
 
 const getCpfs = async (cpf) => {
     
-    return await fetch("https://f21f-189-57-188-42.ngrok-free.app/api/v1/user/cpf-validation/", {
+    return await fetch("https://7769-189-57-188-42.ngrok-free.app/api/v1/user/cpf-validation/", {
         method: "POST",
         headers: {
             'Accept': 'application/json',
@@ -63,7 +63,7 @@ const Welcome = ({ navigation }) => {
         console.log(cpf)
         console.log(password)
         try {
-            const response = await fetch("https://f21f-189-57-188-42.ngrok-free.app/api/token/", {
+            const response = await fetch("https://7769-189-57-188-42.ngrok-free.app/api/token/", {
                 method: "POST",
                 headers: {
                     'Accept': 'application/json',
@@ -74,6 +74,8 @@ const Welcome = ({ navigation }) => {
     
             const data = await response.json();
             const status_code = response.status;
+
+           // console.log(data)
 
             if(status_code == 200){
                 setVisibleModalPassword(false)
@@ -90,7 +92,7 @@ const Welcome = ({ navigation }) => {
     
             return { data, status_code };
         } catch (error) {
-            console.error('Fetch error:', error);
+            console.error('Fetch error:', error.stack);
             return { error: error.message };
         }
     

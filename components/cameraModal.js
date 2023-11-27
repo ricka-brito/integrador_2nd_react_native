@@ -40,7 +40,7 @@ export default function CameraModal(props) {
             { rotate: 180 },
             { flip: FlipType.Vertical },
         ],
-        { compress: 1, format: SaveFormat.PNG }
+        { compress: 1, format: SaveFormat.PNG, base64: true }
     );
 
       setPhoto(newphoto)
@@ -91,7 +91,7 @@ export default function CameraModal(props) {
         onPress={() => {takepicture()}}
         >
           <GradientIcon 
-          name="face-recognition"
+          name="picture"
           start={{x: 0.0, y:0}} 
           end={{x: 0.3, y: 1.0}} 
           colors={[COLORS.primary, COLORS.secondary]}
@@ -177,7 +177,9 @@ export default function CameraModal(props) {
             }}
           >
             <Button
-              onPress={event => retorno(photo)}
+              onPress={async () => {
+                setTakingPicture(false);
+              }}
               text="Sim"
               colors={[]}
               style={{
@@ -190,9 +192,7 @@ export default function CameraModal(props) {
               color= "#000"
             />
             <Button
-              onPress={async () => {
-                setTakingPicture(false);
-              }}
+              onPress={() => retorno(photo)}
               text="Não"
               style={{ width: "45%", height: 55 }}
             />

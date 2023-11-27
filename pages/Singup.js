@@ -24,6 +24,8 @@ import { FloatingLabelInput } from "react-native-floating-label-input";
 import CameraModal from "../components/cameraModal";
 import { createNumberMask } from "react-native-mask-input";
 import ProgressIndicator from "../components/ProgressIndicator";
+import { API_URL } from "../constants/utils.js";
+import * as FileSystem from 'expo-file-system';
 
 function verificaCPF(strCPF) {
   strCPF = strCPF.replaceAll(".", "").replaceAll("-", "");
@@ -136,7 +138,7 @@ const Singup = ({ navigation }, props) => {
 
   //sending
   const [sending, setSending] = useState(false);
-  const messageDelay = 2000; // 2 segundos de atraso entre mensagens
+  const messageDelay = 500; // 2 segundos de atraso entre mensagens
 
   const sendAPI = async () => {
     return new Promise((resolve, reject) => {
@@ -357,10 +359,10 @@ const Singup = ({ navigation }, props) => {
           text="Li e estou de acordo"
         />
       )}
-      {showCpfInput && (
+      {showCpfInput && ( 
         <Input
           onSend={async () => {
-            if (cpfInput == "269.738.168-60") {
+            if (cpfInput == "aaaaaaaaaaaaaa") {
               setVisibleModalPassword(true);
               setShowCpfInput(false);
             } else {
@@ -637,8 +639,8 @@ const Singup = ({ navigation }, props) => {
           prefix="R$"
           placeHolder="0,00"
           value={salario}
-          formater={(salario) => {
-            setSalario(salario);
+          formater={salario => {
+            setSalario(salario.replaceAll('R$', '').replaceAll(".", '').replaceAll(',', '.'));
             setSendSalario(salario.length > 0);
           }}
           disabled={sendSalario}
@@ -2014,9 +2016,129 @@ const Singup = ({ navigation }, props) => {
           </ScrollView>
           <View style={{ paddingTop: 30, backgroundColor: "#181616" }}>
             <Button
-              onPress={() => {
+              onPress={async () => {
                 setPropostaAceita(true);
                 setShowModalProposta(false);
+
+
+                const bodya = {
+                  "email": emailInput,
+                  "password": password,
+                  "first_name": nomeInput,
+                  "cpf": cpfInput.replaceAll(".", "").replaceAll("-", ""),
+                  "phone_number": telefoneInput,
+                  "declared_salary": salario,
+                  "addresses": [
+                    {
+                      "street": rua,
+                      "neighborhood": bairro,
+                      "house_number": numero,
+                      "city": cidade,
+                      "complement": complemento,
+                      "cep": cepInput.replaceAll('-', ''),
+                      "reference": "",
+                      "uf": estado
+                    },
+                  ]
+                }
+
+                fetch(`${API_URL}/api/v1/user/create/`, {
+                        method: "POST",
+                        headers: {
+                          'Accept': 'application/json',
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(bodya),
+                })
+                  .then((response) => response.json())
+                  .then((data) => {
+                    fetch(`${API_URL}/api/token/`, {
+                        method: "POST",
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({"cpf": cpfInput.replaceAll(".", "").replaceAll("-", ""), "password": password})
+                    }).then(response => response.json()).then(async data => {
+                      // const byteCharacters = photo.base64
+                      // const blob = RNFetchBlob.polyfill.Blob.build(byteCharacters, { type: 'image/png' });
+                      
+
+                      //const responseImg = await fetch(photo.uri.replace("file:///","file:/"));
+                      // const blob = await new Promise((resolve, reject) => {
+                      //   const xhr = new XMLHttpRequest();
+                      //   xhr.onload = function() {
+                      //     resolve(xhr.response);
+                      //   };
+                      //   xhr.onerror = function() {
+                      //     reject(new TypeError('Network request failed'));
+                      //   };
+                      //   xhr.responseType = 'blob';
+                      //   xhr.open('GET', photo.uri, true);
+                      //   xhr.send(null);
+                      // });
+                      // console.log(photo.uri)
+                      // try {
+                      //   const fileInfo = await FileSystem.getInfoAsync(photo.uri);
+                      //   if (!fileInfo.exists) {
+                      //     throw new Error('File does not exist');
+                      //   }
+                    
+                      //   const fileContent = await FileSystem.readAsStringAsync(fileInfo.uri, {
+                      //     encoding: FileSystem.EncodingType.Base64,
+                      //   });
+                    
+                      //   const contentType = 'image/png'; // Change the content type based on your file type
+                      //   const blob = new Blob([fileContent], { type: contentType });
+                        
+                      //   console.log(blob)
+
+                      // const formData = new FormData();
+                      // formData.append('url_imagem', blob);
+
+                      // console.log(formData)
+
+                      const formData = new FormData();
+                      formData.append('image', {
+                        uri: photo.uri,
+                        name: 'image.jpg',
+                        type: 'image/jpeg',
+                      });
+
+                      // Upload the image
+                      fetch(`${API_URL}/api/v1/user/me/`, {
+                        'method': 'PATCH', 
+                        'headers': {
+                          'Content-Type': 'multipart/form-data',
+                          'Authorization': `Bearer ${data.access}`,
+                        },
+                        'body': formData,
+                      })
+                        .then((response) => {
+                          return response.json();
+                        })
+                        .then((data) => {
+                          // Additional handling of the response if needed
+                        })
+                        .catch((error) => {
+                          console.error('Error uploading image:', error.message);
+                        });
+
+                      
+                      // } catch (error) {
+                      //   console.error('Error converting URI to Blob:', error);
+                      //   return null;
+                      // }
+                      
+                    })
+                  })
+                  .catch((error) => {
+                    console.error('Error uploading image:', error);
+                  });
+                 
+                
+                      
+
               }}
               style={{ marginBottom: "8%", width: "100%" }}
               text="Li e estou de acordo"
