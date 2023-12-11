@@ -1,11 +1,59 @@
 import {ImageBackground, View, Text, Image, FlatList, TouchableOpacity } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { AntDesign } from "@expo/vector-icons";
 import DraggableSheet from '../components/draggableSheet';
 import Transaction from "../components/transaction";
+import useTokenStore from "../tokenStore";
+import { API_URL } from "../constants/utils";
 
 
 export default function Home({navigation}) {
+    const { token, setToken } = useTokenStore(); // Access the token and setToken function from the store
+    const [name, setName] = useState();
+    const [balance, setBalance] = useState();
+    const [balanceCents, setBalanceCents] = useState();
+    const [statement, setStatement] = useState();
+    const [accountNum, setAccountNum] = useState();
+
+    useEffect(() => {
+
+        fetch(`${API_URL}/api/v1/user/me/`, {
+            method: "GET",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token.access}`
+              },
+        }).then(response => response.json()).then(data => {
+            setAccountNum(data.account.number)
+            setName(data.first_name)
+            setBalance(String(data.account.balance).split('.')[0])
+            setBalanceCents(String(data.account.balance).split('.')[1])
+        })
+
+        console.log(token)
+
+        fetch(`${API_URL}/api/v1/accounts/statement/`, {
+            method: "GET",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token.access}`
+              },
+        }).then(response => response.json()).then(data => {
+            
+            const transactions = data.results.map(item => ({
+                nome: item.transaction_type == "DP" ? "Deposito" : item.transaction_type == "CR" ? `Compra ${item.card.number.slice(0, 4)} ${item.description}` : item.description,
+                valor: item.transaction_type == "TR" ? accountNum == item.sender.number && item.transaction_type == "TR" ? Number(item.value)*-1  : Number(item.value) : Number(item.value),
+                data: new Date(item.created_at),
+                pago: '',
+                tipo: item.transaction_type == "TR" ? accountNum == item.sender.number && item.transaction_type == "TR" ? "TR-P" : item.transaction_type : item.transaction_type
+              }));
+            setStatement(transactions)
+        }
+        )
+
+    },[])
 
     const buttons = [
         { 
@@ -35,50 +83,52 @@ export default function Home({navigation}) {
         }
     ]
 
-    const transactions = [
-        {
-            nome: 'Transferencia - PIX',
-            valor: 10.00,
-            pago: '',
-            data: new Date(2023, 9, 26, 11, 55),
-            tipo: 'transferencia',
-        },
-        {
-            nome: 'Pagamento cartão',
-            valor: -523.00,
-            pago: 'Pago',
-            data: new Date(2023, 9, 25, 10, 55),
-            tipo: 'subir',
-        },
-        {
-            nome: 'Compra 8873 *UBERX',
-            valor: 12.00,
-            pago: '+R$ 0,12',
-            data: new Date(2023, 9, 25, 10, 55),
-            tipo: 'pagar',
-        },
-        {
-            nome: 'Compra 8873 *UBERX',
-            valor: 12.00,
-            pago: '+R$ 0,12',
-            data: new Date(2023, 9, 25, 10, 55),
-            tipo: 'pagar'
-        },
-        {
-            nome: 'Compra 8873 *UBERX',
-            valor: 12.00,
-            pago: '+R$ 0,12',
-            data: new Date(2023, 9, 25, 10, 55),
-            tipo: 'pagar'
-        },
-        {
-            nome: 'Compra 8873 *UBERX',
-            valor: 12.00,
-            pago: '+R$ 0,12',
-            data: new Date(2023, 9, 25, 10, 55),
-            tipo: 'pagar'
-        },
-    ]
+    
+
+    // const transactions = [
+    //     {
+    //         nome: 'Transferencia - PIX',
+    //         valor: 10.00,
+    //         pago: '',
+    //         data: new Date(2023, 9, 26, 11, 55),
+    //         tipo: 'transferencia',
+    //     },
+    //     {
+    //         nome: 'Pagamento cartão',
+    //         valor: -523.00,
+    //         pago: 'Pago',
+    //         data: new Date(2023, 9, 25, 10, 55),
+    //         tipo: 'subir',
+    //     },
+    //     {
+    //         nome: 'Compra 8873 *UBERX',
+    //         valor: 12.00,
+    //         pago: '+R$ 0,12',
+    //         data: new Date(2023, 9, 25, 10, 55),
+    //         tipo: 'pagar',
+    //     },
+    //     {
+    //         nome: 'Compra 8873 *UBERX',
+    //         valor: 12.00,
+    //         pago: '+R$ 0,12',
+    //         data: new Date(2023, 9, 25, 10, 55),
+    //         tipo: 'pagar'
+    //     },
+    //     {
+    //         nome: 'Compra 8873 *UBERX',
+    //         valor: 12.00,
+    //         pago: '+R$ 0,12',
+    //         data: new Date(2023, 9, 25, 10, 55),
+    //         tipo: 'pagar'
+    //     },
+    //     {
+    //         nome: 'Compra 8873 *UBERX',
+    //         valor: 12.00,
+    //         pago: '+R$ 0,12',
+    //         data: new Date(2023, 9, 25, 10, 55),
+    //         tipo: 'pagar'
+    //     },
+    // ]
     
     return (
         <View style={{backgroundColor: "#000", flex: 1, display: 'flex', justifyContent: 'center'}}>
@@ -86,7 +136,7 @@ export default function Home({navigation}) {
                 <View style={{ width: "85%", marginTop: "18%", display: 'flex', flexDirection: "row", justifyContent: "space-between" }}>
                     <View>
                         <Text style={{fontFamily: 'MontserratAlternates-Light', fontSize: 27, color: "#fff"}}>{new Date().getHours() > 18  && new Date().getHours() < 24 ? "boa noite" : new Date().getHours() > 4 && new Date().getHours() < 12 ? "bom dia" : "boa tarde" },</Text>
-                        <Text style={{fontFamily: 'MontserratAlternates-Bold', fontSize: 29, color: "#fff"}}>Henrique</Text>
+                        <Text style={{fontFamily: 'MontserratAlternates-Bold', fontSize: 29, color: "#fff"}}>{name}</Text>
                     </View>
                     <View style={{display:'flex', flexDirection: 'row', alignItems: 'center', width: "29%", justifyContent: "space-between"}}>
                         <Image resizeMode="contain" style={{ width: 25, height: 25}} source={{uri: "https://i.ibb.co/V2wqfky/notifications-FILL1-wght400-GRAD0-opsz48-1.png"}}/>
@@ -108,10 +158,10 @@ export default function Home({navigation}) {
                                         R$
                                     </Text>
                                     <Text style={{fontFamily: 'MontserratAlternates-Medium', color: "#fff", fontSize: 23}}>
-                                        1200,
+                                        {balance},
                                     </Text>
                                     <Text style={{fontFamily: 'MontserratAlternates-Medium', color: "#fff", fontSize: 14, marginBottom: "1.3%"}}>
-                                        00
+                                        {balanceCents}
                                     </Text>
                                 </View>
                                 <AntDesign name="right" size={21} color="#ddd" />
@@ -121,7 +171,7 @@ export default function Home({navigation}) {
                     <View style={{flex: 0.35, borderTopColor: "rgba(255, 255, 255, 0.2)", borderTopWidth: 1, display: 'flex', alignItems: 'center'}}>
                         <View style={{width: '87%'}}>
                             <Text style={{fontFamily: 'MontserratAlternates-Medium', color: "rgba(255, 255, 255, 0.58)", fontSize: 12, marginTop: "6%"}}>
-                                    Total investido em reais    
+                                    Total da fatura em reais    
                                 </Text>
                                 <View style={{width: "100%", marginTop: "2%", display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-end', flex: 1}}>
@@ -134,11 +184,11 @@ export default function Home({navigation}) {
                                         <Text style={{fontFamily: 'MontserratAlternates-Medium', color: "#fff", fontSize: 14, marginBottom: "1.3%"}}>
                                             57
                                         </Text>
-                                        <View style={{width: "20%", paddingVertical: "1.8%", backgroundColor: "rgba(125, 220, 123, 0.21)", borderRadius: 4, display: 'flex', alignItems: 'center', marginLeft: "4%"}}>
+                                        {/* <View style={{width: "20%", paddingVertical: "1.8%", backgroundColor: "rgba(125, 220, 123, 0.21)", borderRadius: 4, display: 'flex', alignItems: 'center', marginLeft: "4%"}}>
                                             <Text style={{color: "#5CC25C"}}>
                                                 +5,21%
                                             </Text>  
-                                        </View>
+                                        </View> */}
                                     </View>
                                     <AntDesign name="right" size={21} color="#ddd" />
                                 </View>
@@ -162,7 +212,7 @@ export default function Home({navigation}) {
                 }}/>
                 <DraggableSheet>
                     <FlatList
-                    data={transactions}
+                    data={statement}
                     numColumns={1}
                     renderItem={({item}) => {
                         return (

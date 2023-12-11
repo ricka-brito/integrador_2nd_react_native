@@ -6,6 +6,7 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import GradientText from '../components/gradientText';
 import GradientIcon from '../components/GradientIcon';
+import QRCode from 'react-native-qrcode-svg';
 
 const Transference = ({navigation}) => {
 

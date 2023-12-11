@@ -11,11 +11,13 @@ import { AntDesign } from '@expo/vector-icons';
 import FlashMessage, { showMessage } from 'react-native-flash-message';
 import SmoothPinCodeInput from 'react-native-smooth-pincode-input';
 import * as Haptics from "expo-haptics";
+import { API_URL } from "../constants/utils";
+import useTokenStore from "../tokenStore";
 
 
 const getCpfs = async (cpf) => {
     
-    return await fetch("https://7769-189-57-188-42.ngrok-free.app/api/v1/user/cpf-validation/", {
+    return await fetch(`${API_URL}/api/v1/user/cpf/`, {
         method: "POST",
         headers: {
             'Accept': 'application/json',
@@ -63,7 +65,7 @@ const Welcome = ({ navigation }) => {
         console.log(cpf)
         console.log(password)
         try {
-            const response = await fetch("https://7769-189-57-188-42.ngrok-free.app/api/token/", {
+            const response = await fetch(`${API_URL}/api/token/`, {
                 method: "POST",
                 headers: {
                     'Accept': 'application/json',
@@ -78,6 +80,7 @@ const Welcome = ({ navigation }) => {
            // console.log(data)
 
             if(status_code == 200){
+                setToken(data)
                 setVisibleModalPassword(false)
                 navigation.navigate("Home", {fontsLoaded:fontsLoaded})
             }
@@ -193,6 +196,7 @@ const Welcome = ({ navigation }) => {
     const [cpfExiste, setCpfExist] = useState(true)
     const [mostrou, setMostrou] = useState(false)
     const flashMessage = useRef();
+    const { token, setToken } = useTokenStore(); // Access the token and setToken function from the store
 
       const onLayoutRootView = useCallback(async () => {
         if (fontsLoaded || fontError) {

@@ -19,9 +19,9 @@ export default function Transaction({nome, valor, pago, data, tipo}) {
 
   const hoje = new Date()
 
-  var icon = tipo == 'transferencia'
+  var icon = tipo == 'TR'
   ? require('../assets/transferencia.png')
-  : tipo == 'pagar' ? require('../assets/pagar.png') :
+  : tipo == 'CR' ? require('../assets/pagar.png') : tipo == "DP" ? require('../assets/deposit.png'):
   require('../assets/subir.png');
 
   const data_string = (sameDay(data, hoje) ? "Hoje" : datediff(data, hoje) == 1 ? "Ontem" : datediff(data, hoje) <= 6 ? semana[data.getDay()] : data.getDate() + "/" + (data.getMonth()+1)) + " - " + data.getHours() + ":" + data.getMinutes() 
@@ -31,7 +31,7 @@ export default function Transaction({nome, valor, pago, data, tipo}) {
       <View style={{marginBottom: "7%"}}>
         <Image resizeMode="contain" style={{ width:45, height: 45}} source={icon}/>
       </View>
-      <View style={{marginBottom: "7%", display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1, marginLeft: "2%"}}>
+      <View style={{marginBottom: "7%", display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1, marginLeft: "2%", alignItems: 'center'}}>
         <View style={{display: 'flex', justifyContent: 'center'}}>
           <Text style={{fontFamily: 'MontserratAlternates-Medium', fontSize: 15, color: '#d1d1d1', maxWidth: 185}} ellipsizeMode='tail' numberOfLines={1}>
           {nome}
@@ -40,7 +40,7 @@ export default function Transaction({nome, valor, pago, data, tipo}) {
             {data_string}
           </Text>
         </View>
-        <View style={{display: 'flex', alignItems: 'flex-end'}}>
+        <View style={{display: 'flex', alignItems: 'flex-end', flex: 1, marginRight: 10}}>
           <Text style={{fontFamily: 'MontserratAlternates-Medium', fontSize: 17, color: '#d1d1d1'}}>
            {Math.sign(valor) == 1 ? "+" : ''}{valor.toLocaleString('pt-BR', {
             style: 'currency',
