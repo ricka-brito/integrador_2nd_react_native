@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Welcome, Singup, Home, Pay, Transference} from './pages';
+import Analysis from './pages/analysis';
 
 const Stack = createStackNavigator()
 export default function App() {
@@ -44,6 +45,14 @@ export default function App() {
         <Stack.Screen
         name='Transference'
         component={Transference}
+        options={{
+          headerShown: false,
+          gestureEnabled: false
+        }}
+        />
+        <Stack.Screen
+        name='Analysis'
+        component={Analysis}
         options={{
           headerShown: false,
           gestureEnabled: false

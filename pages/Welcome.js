@@ -84,6 +84,15 @@ const Welcome = ({ navigation }) => {
                 setVisibleModalPassword(false)
                 navigation.navigate("Home", {fontsLoaded:fontsLoaded})
             }
+            else if(status_code == 403){
+                setVisibleModalPassword(false)
+                flashMessage.current.showMessage(
+                    {message: "Muitas tentativas incorretas tente novamente em alguns minutos.", 
+                    icon: () => <AntDesign name="exclamationcircle" 
+                    size={22} 
+                    color={COLORS.white} 
+                    style={{marginRight: 10}}/>})
+            }
             else {
                 Haptics.notificationAsync(
                   Haptics.NotificationFeedbackType.Error

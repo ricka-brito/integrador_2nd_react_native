@@ -24,7 +24,12 @@ export default function Home({navigation}) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token.access}`
               },
-        }).then(response => response.json()).then(data => {
+        }).then(response => { 
+            if (response.status == 403){
+                navigation.navigate('Analysis')
+            }
+            return response.json()}).then(data => {
+            
             setAccountNum(data.account.number)
             setName(data.first_name)
             setBalance(String(data.account.balance).split('.')[0])
