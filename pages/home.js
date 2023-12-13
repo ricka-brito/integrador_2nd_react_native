@@ -16,14 +16,13 @@ export default function Home({navigation}) {
     const [accountNum, setAccountNum] = useState();
 
     useEffect(() => {
-
         fetch(`${API_URL}/api/v1/user/me/`, {
             method: "GET",
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token.access}`
-              },
+            },
         }).then(response => { 
             if (response.status == 403){
                 navigation.navigate('Analysis')
@@ -36,27 +35,26 @@ export default function Home({navigation}) {
             setBalanceCents(String(data.account.balance).split('.')[1])
         })
 
-        console.log(token)
-
         fetch(`${API_URL}/api/v1/accounts/statement/`, {
             method: "GET",
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token.access}`
-              },
-        }).then(response => response.json()).then(data => {
-            
-            const transactions = data.results.map(item => ({
-                nome: item.transaction_type == "DP" ? "Deposito" : item.transaction_type == "CR" ? `Compra ${item.card.number.slice(0, 4)} ${item.description}` : item.description,
-                valor: item.transaction_type == "TR" ? accountNum == item.sender.number && item.transaction_type == "TR" ? Number(item.value)*-1  : Number(item.value) : Number(item.value),
-                data: new Date(item.created_at),
-                pago: '',
-                tipo: item.transaction_type == "TR" ? accountNum == item.sender.number && item.transaction_type == "TR" ? "TR-P" : item.transaction_type : item.transaction_type
-              }));
-            setStatement(transactions)
-        }
-        )
+            'Authorization': `Bearer ${token.access}`
+          },
+    }).then(response => response.json()).then(data => {
+        
+        const transactions = data.results.map(item => ({
+            nome: item.transaction_type == "DP" ? "Deposito" : item.transaction_type == "CR" ? `Compra ${item.card.number.slice(0, 4)} ${item.description}` : item.description,
+            valor: item.transaction_type == "TR" ? accountNum == item.sender.number ? Number(item.value)*-1  : Number(item.value) : Number(item.value),
+            data: new Date(item.created_at),
+            pago: '',
+            tipo: item.transaction_type == "TR" ? accountNum == item.sender.number && item.transaction_type == "TR" ? "TR-P" : item.transaction_type : item.transaction_type
+          }));
+        setStatement(transactions)
+    }
+    )
+        
 
     },[])
 
@@ -78,8 +76,8 @@ export default function Home({navigation}) {
         },
         {
             icon: 'https://i.ibb.co/YBHF6V6/savings-FILL0-wght300-GRAD0-opsz48-1-1.png',
-            desc: 'Guardar',
-            onPress: () => {}
+            desc: 'Receber',
+            onPress: () => {navigation.navigate("Pix")}
         },
         {
             icon: 'https://i.ibb.co/HPYtq1b/dots.png',

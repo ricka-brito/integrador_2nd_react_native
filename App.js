@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Welcome, Singup, Home, Pay, Transference} from './pages';
 import Analysis from './pages/analysis';
+import Pix from './pages/pix';
 
 const Stack = createStackNavigator()
 export default function App() {
@@ -53,6 +54,14 @@ export default function App() {
         <Stack.Screen
         name='Analysis'
         component={Analysis}
+        options={{
+          headerShown: false,
+          gestureEnabled: false
+        }}
+        />
+        <Stack.Screen
+        name='Pix'
+        component={Pix}
         options={{
           headerShown: false,
           gestureEnabled: false
